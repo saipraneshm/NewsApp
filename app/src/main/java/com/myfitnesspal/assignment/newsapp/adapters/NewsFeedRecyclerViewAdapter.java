@@ -1,6 +1,9 @@
 package com.myfitnesspal.assignment.newsapp.adapters;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -149,13 +152,19 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         @BindView(R.id.pub_time_text_view)
         TextView mPubDate;
 
+        @BindView(R.id.cardView)
+        CardView mCardView;
+
+        NewsStories mNewsStory;
+
         public NewsFeedViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this,itemView);
-            itemView.setOnClickListener(this);
+            mCardView.setOnClickListener(this);
         }
 
         public void bind(NewsStories newsStory){
+            mNewsStory = newsStory;
                 Picasso.with(mContext)
                         .load(newsStory.getThumbnailUrl())
                         .placeholder(R.drawable.ic_news)
@@ -170,7 +179,9 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
         @Override
         public void onClick(View view) {
-
+            Uri uri = Uri.parse(mNewsStory.getWebUrl());
+            Intent i = NewsFeedDetailActivity.newIntent(mContext,uri);
+            mContext.startActivity(i);
         }
     }
 

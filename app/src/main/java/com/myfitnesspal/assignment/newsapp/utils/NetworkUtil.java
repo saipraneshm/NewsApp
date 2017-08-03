@@ -154,6 +154,7 @@ public class NetworkUtil {
             if(response.getMeta() != null){
                 newsStory.setHits(response.getMeta().getHits());
             }
+            newsStory.setWebUrl(doc.getWebUrl());
             newsStory.setPubDate(doc.getPubDate());
             newsStories.add(newsStory);
         }

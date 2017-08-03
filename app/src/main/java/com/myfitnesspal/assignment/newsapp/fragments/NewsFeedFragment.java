@@ -1,7 +1,11 @@
 package com.myfitnesspal.assignment.newsapp.fragments;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.hardware.input.InputManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -18,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ProgressBar;
 
 import com.myfitnesspal.assignment.newsapp.R;
@@ -26,7 +31,6 @@ import com.myfitnesspal.assignment.newsapp.adapters.PaginationScrollListener;
 import com.myfitnesspal.assignment.newsapp.models.NewsStories;
 import com.myfitnesspal.assignment.newsapp.utils.NetworkUtil;
 
-import java.io.IOException;
 import java.util.List;
 
 import butterknife.BindView;
@@ -36,7 +40,7 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<NewsStories>>{
+public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<NewsStories>>, SharedPreferences.OnSharedPreferenceChangeListener {
 
 
     private static final String SEARCH_QUERY_EXTRA = "searchQueryExtra";
@@ -58,7 +62,12 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
     private int mCurrentPage = PAGE_START;
     private boolean isFirstPageLoading = false;
 
-    private static NewsFeedRecyclerViewAdapter mAdapter;
+    private SharedPreferences mSharedPreferences;
+    private static final String SAVE_QUERY_TAG = "save_query_tag";
+    private static final String SAVE_QUERY_FOR_ROTATION = "saveQueryForRotation";
+
+
+    private NewsFeedRecyclerViewAdapter mAdapter;
 
     public NewsFeedFragment() {
         // Required empty public constructor
@@ -73,8 +82,11 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-       // makeActionSearchApiQuery(null,0);
+
         Log.d(TAG,"in on Create of NewsFeedFragment");
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
     }
 
@@ -131,14 +143,17 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
         inflater.inflate(R.menu.activity_main_menu, menu);
 
         MenuItem searchItem = menu.findItem(R.id.app_bar_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        final SearchView searchView = (SearchView) searchItem.getActionView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, " Submitted query: " + query);
-                makeActionSearchApiQuery(query,0);
-                isFirstPageLoading = true;
+                InputMethodManager im = (InputMethodManager) getActivity()
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
+                im.hideSoftInputFromInputMethod(searchView.getWindowToken(),0);
+                searchView.clearFocus();
+                saveQuery(query);
                 return true;
             }
 
@@ -151,11 +166,11 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void loadFirstPage(){
         isFirstPageLoading = true;
-        makeActionSearchApiQuery(null,0);
+        makeActionSearchApiQuery(getQuery(),0);
     }
 
     private void loadNextPage(){
-        makeActionSearchApiQuery(null, mCurrentPage);
+        makeActionSearchApiQuery(getQuery(), mCurrentPage);
     }
 
     private void makeActionSearchApiQuery(String query, int page){
@@ -171,6 +186,17 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
         }else{
             loaderManager.restartLoader(NEWS_STORY_SEARCH_LOADER, queryBundle,this);
         }
+    }
+
+    private void saveQuery(String query){
+        mSharedPreferences
+                .edit()
+                .putString(SAVE_QUERY_TAG, query)
+                .apply();
+    }
+
+    private String getQuery(){
+        return mSharedPreferences.getString(SAVE_QUERY_TAG, null);
     }
 
 
@@ -245,4 +271,18 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLoaderReset(Loader<List<NewsStories>> loader) {
 
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        loadFirstPage();
+    }
+
+
+
 }

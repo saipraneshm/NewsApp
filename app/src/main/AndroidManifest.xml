@@ -20,7 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".activities.NewsFeedDetailActivity">
+        <activity android:name=".activities.NewsFeedDetailActivity"
+            android:parentActivityName=".activities.NewsFeedActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize">
         </activity>
     </application>
 

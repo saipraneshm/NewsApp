@@ -15,8 +15,21 @@ public class NewsFeedDetailActivity extends SingleFragmentActivity {
         intent.setData(uri);
         return intent;
     }
+
+    NewsFeedDetailFragment mNewsFeedDetailFragment;
+
     @Override
     protected Fragment createFragment() {
-        return NewsFeedDetailFragment.newInstance(getIntent().getData());
+       mNewsFeedDetailFragment = NewsFeedDetailFragment.newInstance(getIntent().getData());
+        return mNewsFeedDetailFragment;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(mNewsFeedDetailFragment.onBackPressed()){
+            return;
+        }
+        super.onBackPressed();
+
     }
 }
