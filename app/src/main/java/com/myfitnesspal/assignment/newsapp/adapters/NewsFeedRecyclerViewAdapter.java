@@ -135,7 +135,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
 
     //View holder that binds the news story to the view
-    class NewsFeedViewHolder extends RecyclerView.ViewHolder{
+    class NewsFeedViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         @BindView(R.id.thumbnail_image_view)
         ImageView mThumbnailImageView;
@@ -152,6 +152,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         public NewsFeedViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this,itemView);
+            itemView.setOnClickListener(this);
         }
 
         public void bind(NewsStories newsStory){
@@ -164,6 +165,11 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                         .into(mThumbnailImageView);
             mHeadline.setText(newsStory.getHeadline());
             mPubDate.setText(newsStory.getPubDate());
+
+        }
+
+        @Override
+        public void onClick(View view) {
 
         }
     }

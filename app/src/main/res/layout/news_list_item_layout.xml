@@ -13,6 +13,8 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
+        android:focusable="true"
+        android:clickable="true"
         android:elevation="8dp"
         app:cardElevation="8dp"
         app:layout_constraintHorizontal_bias="0.0"
