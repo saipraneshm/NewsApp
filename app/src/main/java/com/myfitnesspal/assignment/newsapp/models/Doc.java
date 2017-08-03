@@ -19,6 +19,7 @@ public class Doc {
     @SerializedName("headline")
     @Expose
     private Headline headline;
+
     @SerializedName("pub_date")
     @Expose
     private String pubDate;

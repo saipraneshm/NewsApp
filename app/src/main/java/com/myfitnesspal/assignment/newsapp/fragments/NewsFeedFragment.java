@@ -31,6 +31,7 @@ import com.myfitnesspal.assignment.newsapp.adapters.PaginationScrollListener;
 import com.myfitnesspal.assignment.newsapp.models.NewsStories;
 import com.myfitnesspal.assignment.newsapp.utils.NetworkUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -45,6 +46,8 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
 
     private static final String SEARCH_QUERY_EXTRA = "searchQueryExtra";
     private static final String PAGE_QUERY_EXTRA = "pageQueryExtra";
+    private static final String SAVE_NEWS_STORIES = "saveNewsStories";
+    private static final String SAVE_FIRST_VISIBLE_ITEM_POSITION = "saveFirstVisibleItemPosition";
 
     @BindView(R.id.news_feed_fragment_recycler_view)
     RecyclerView mNewsFeedRecyclerView;
@@ -64,10 +67,11 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
 
     private SharedPreferences mSharedPreferences;
     private static final String SAVE_QUERY_TAG = "save_query_tag";
-    private static final String SAVE_QUERY_FOR_ROTATION = "saveQueryForRotation";
+    private static final String SAVE_CURRENT_PAGE = "saveQueryForRotation";
 
 
     private NewsFeedRecyclerViewAdapter mAdapter;
+    private int mFirstVisibleItemPosition = 0;
 
     public NewsFeedFragment() {
         // Required empty public constructor
@@ -82,10 +86,10 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        setRetainInstance(true);
 
         Log.d(TAG,"in on Create of NewsFeedFragment");
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
     }
@@ -129,9 +133,24 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
             public boolean isLoading() {
                 return isLoading;
             }
+
+            @Override
+            public void getFirstVisibleItemPosition(int position) {
+                mFirstVisibleItemPosition = position;
+            }
         });
 
-        loadFirstPage();
+
+        if(savedInstanceState != null){
+            mAdapter.setNewsStories(savedInstanceState
+                            .<NewsStories>getParcelableArrayList(SAVE_NEWS_STORIES));
+            mNewsFeedRecyclerView
+                    .scrollToPosition(savedInstanceState.getInt(SAVE_FIRST_VISIBLE_ITEM_POSITION));
+            mCurrentPage = savedInstanceState.getInt(SAVE_CURRENT_PAGE);
+        }else{
+            loadFirstPage();
+        }
+
 
         return view;
     }
@@ -258,7 +277,7 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
                 else isLastPage = true;
             }else{
                 isFirstPageLoading = false;
-                mTotalPages = data.get(0).getHits() / 10;
+                mTotalPages = data.get(0).getHits() / 10 - 1;
                 mAdapter.setNewsStories(data);
                 if (mCurrentPage <= mTotalPages) mAdapter.addLoadingFooter();
                 else isLastPage = true;
@@ -283,6 +302,12 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
         loadFirstPage();
     }
 
-
-
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        ArrayList<NewsStories> stories = (ArrayList<NewsStories>) mAdapter.getNewsStories();
+        outState.putInt(SAVE_CURRENT_PAGE,mCurrentPage);
+        outState.putParcelableArrayList(SAVE_NEWS_STORIES, stories);
+        outState.putInt(SAVE_FIRST_VISIBLE_ITEM_POSITION , mFirstVisibleItemPosition);
+    }
 }

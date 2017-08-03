@@ -1,6 +1,7 @@
 package com.myfitnesspal.assignment.newsapp.utils;
 
 import android.net.Uri;
+import android.text.format.DateFormat;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -18,8 +19,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Scanner;
 
 /**
  * Created by saip92 on 8/2/2017.
@@ -81,6 +87,43 @@ public class NetworkUtil {
 
     }
 
+    public static String getResponseFromHttpUrl(String urlString) throws IOException {
+
+        URL url = new URL(urlString);
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+        try {
+
+            InputStream in = urlConnection.getInputStream();
+
+
+            Scanner scanner = new Scanner(in);
+
+            scanner.useDelimiter("\\A");
+
+
+            boolean hasInput = scanner.hasNext();
+
+            String response = null;
+
+            if (hasInput) {
+
+                response = scanner.next();
+
+            }
+
+            scanner.close();
+
+            return response;
+
+        } finally {
+
+            urlConnection.disconnect();
+
+        }
+
+    }
+
     public static String getUrlString(String urlSpec) throws IOException{
         return new String(getUrlBytes(urlSpec));
     }
@@ -117,7 +160,7 @@ public class NetworkUtil {
     private static List<NewsStories> fetchArticleStories(String url) {
         List<NewsStories> newsStories = new ArrayList<>();
         try{
-            String jsonString = getUrlString(url);
+            String jsonString = getResponseFromHttpUrl(url);
             Log.d(TAG, "Received Json Object" +jsonString);
             JSONObject jsonObject = new JSONObject(jsonString);
             parseItems(newsStories, jsonObject.getString("response"));
@@ -155,7 +198,22 @@ public class NetworkUtil {
                 newsStory.setHits(response.getMeta().getHits());
             }
             newsStory.setWebUrl(doc.getWebUrl());
-            newsStory.setPubDate(doc.getPubDate());
+            if(doc.getPubDate() != null){
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ",
+                        Locale.getDefault());
+                Date pubDate;
+                try{
+                    pubDate = formatter.parse(doc.getPubDate());
+                    String date = DateFormat.format("EEE, MMM dd",pubDate).toString();
+                    newsStory.setPubDate(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                newsStory.setPubDate("Not available");
+            }
+
+            //newsStory.setPubDate(doc.getPubDate());
             newsStories.add(newsStory);
         }
     }

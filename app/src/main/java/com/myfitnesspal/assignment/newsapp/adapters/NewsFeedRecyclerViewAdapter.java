@@ -49,9 +49,13 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     }
 
     public void setNewsStories(List<NewsStories> newsStories) {
+        if(mNewsStories != null && mNewsStories.size() > 0)
+            mNewsStories.clear();
         mNewsStories = newsStories;
-        notifyItemRangeChanged(0, mNewsStories.size());
+        notifyDataSetChanged();
     }
+
+
 
 
 

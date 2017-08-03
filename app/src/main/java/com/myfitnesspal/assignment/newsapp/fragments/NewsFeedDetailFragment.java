@@ -117,6 +117,9 @@ public class NewsFeedDetailFragment extends Fragment {
             Intent shareIntent = createShareNewsIntent();
             startActivity(shareIntent);
             return true;
+        }else if(id == android.R.id.home){
+            getActivity().finish();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

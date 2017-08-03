@@ -23,6 +23,9 @@
         <activity android:name=".activities.NewsFeedDetailActivity"
             android:parentActivityName=".activities.NewsFeedActivity"
             android:configChanges="keyboardHidden|orientation|screenSize">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.NewsFeedActivity" />
         </activity>
     </application>
 

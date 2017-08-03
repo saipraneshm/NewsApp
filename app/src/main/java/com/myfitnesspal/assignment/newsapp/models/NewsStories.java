@@ -1,10 +1,13 @@
 package com.myfitnesspal.assignment.newsapp.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by saip92 on 8/2/2017.
  */
 
-public class NewsStories {
+public class NewsStories implements Parcelable {
 
     String mHeadline;
     String mPubDate;
@@ -92,4 +95,46 @@ public class NewsStories {
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mHeadline);
+        dest.writeString(this.mPubDate);
+        dest.writeString(this.mWebUrl);
+        dest.writeString(this.mThumbnailUrl);
+        dest.writeString(this.mByline);
+        dest.writeString(this.mId);
+        dest.writeByte(this.mIsThumbnailAvailable ? (byte) 1 : (byte) 0);
+        dest.writeInt(this.mHits);
+    }
+
+    public NewsStories() {
+    }
+
+    protected NewsStories(Parcel in) {
+        this.mHeadline = in.readString();
+        this.mPubDate = in.readString();
+        this.mWebUrl = in.readString();
+        this.mThumbnailUrl = in.readString();
+        this.mByline = in.readString();
+        this.mId = in.readString();
+        this.mIsThumbnailAvailable = in.readByte() != 0;
+        this.mHits = in.readInt();
+    }
+
+    public static final Parcelable.Creator<NewsStories> CREATOR = new Parcelable.Creator<NewsStories>() {
+        @Override
+        public NewsStories createFromParcel(Parcel source) {
+            return new NewsStories(source);
+        }
+
+        @Override
+        public NewsStories[] newArray(int size) {
+            return new NewsStories[size];
+        }
+    };
 }
