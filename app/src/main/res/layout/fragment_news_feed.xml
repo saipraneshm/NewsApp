@@ -1,8 +1,23 @@
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
+             tools:context="com.myfitnesspal.assignment.newsapp.fragments.NewsFeedFragment"
              android:layout_height="match_parent"
-             android:id="@+id/news_feed_fragment_recycler_view"
-             tools:context="com.myfitnesspal.assignment.newsapp.fragments.NewsFeedFragment">
+             android:layout_width="match_parent">
 
-</android.support.v7.widget.RecyclerView>
+    <ProgressBar
+        android:id="@+id/loading_feed_progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_gravity="center_horizontal|center_vertical"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/news_feed_fragment_recycler_view">
+
+    </android.support.v7.widget.RecyclerView>
+
+</FrameLayout>
+
+

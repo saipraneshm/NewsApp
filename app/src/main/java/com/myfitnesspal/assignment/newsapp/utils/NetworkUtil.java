@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -54,35 +55,29 @@ public class NetworkUtil {
 
     public static byte[] getUrlBytes(String urlSpec) throws IOException{
         URL url = new URL(urlSpec);
-
-        HttpURLConnection connection = null;
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         try{
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setReadTimeout(10000);
-            connection.setConnectTimeout(15000);
-            connection.setRequestMethod("GET");
-            connection.connect();
 
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ByteArrayInputStream inputStream = (ByteArrayInputStream) connection.getInputStream();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            InputStream inputStream = connection.getInputStream();
 
             if(connection.getResponseCode() != HttpURLConnection.HTTP_OK){
                 throw new IOException(connection.getResponseMessage()
                         + ": with " + urlSpec);
             }
+
             int bytesRead = 0;
             byte[] buffer = new byte[1024];
             while((bytesRead = inputStream.read(buffer))> 0){
-                outputStream.write(buffer, 0 , bytesRead);
+                out.write(buffer, 0 , bytesRead);
             }
-            outputStream.close();
-            return outputStream.toByteArray();
-
+            out.close();
+            return out.toByteArray();
         }finally {
-            if(connection != null)
-                connection.disconnect();
+            connection.disconnect();
         }
+
 
     }
 
@@ -90,7 +85,9 @@ public class NetworkUtil {
         return new String(getUrlBytes(urlSpec));
     }
 
-    private String buildArticleStoriesUrl(int page){
+
+
+    private static String buildArticleStoriesUrl(int page){
         Uri.Builder builder = ARTICLE_SEARCH_ENDPOINT.buildUpon();
         if(page >=0){
             return builder.appendQueryParameter(PAGE_QUERY, String.valueOf(page)).build().toString();
@@ -99,28 +96,41 @@ public class NetworkUtil {
         }
     }
 
-    private String buildTopStoriesUrl(){
+    private static String buildArticleStoriesUrl(String query, int page){
+        Uri.Builder builder = ARTICLE_SEARCH_ENDPOINT.buildUpon();
+        if(page >=0){
+             return builder.appendQueryParameter("q", query)
+                     .appendQueryParameter(PAGE_QUERY, String.valueOf(page))
+                     .build().toString();
+
+        }else{
+            return null;
+        }
+    }
+
+    private static String buildTopStoriesUrl(){
         return TOP_STORIES_ENDPOINT.buildUpon().build().toString();
     }
 
 
 
-    private List<NewsStories> fetchArticleStories(String url){
+    private static List<NewsStories> fetchArticleStories(String url) {
         List<NewsStories> newsStories = new ArrayList<>();
         try{
             String jsonString = getUrlString(url);
             Log.d(TAG, "Received Json Object" +jsonString);
             JSONObject jsonObject = new JSONObject(jsonString);
             parseItems(newsStories, jsonObject.getString("response"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+        }catch (JSONException e) {
+            Log.e(TAG, "Failed to parse json", e);
+        }
+        catch (IOException ioe) {
+            Log.e(TAG, "Failed to fetch items: ", ioe);
         }
         return newsStories;
     }
 
-    private void parseItems(List<NewsStories> newsStories, String jsonString) {
+    private static void parseItems(List<NewsStories> newsStories, String jsonString) {
         Gson gson = new Gson();
         Response response = gson.fromJson(jsonString, Response.class);
         List<Doc> listOfDocs = response.getDocs();
@@ -137,25 +147,34 @@ public class NetworkUtil {
             }else{
                 newsStory.setThumbnailAvailable(false);
             }
-            newsStory.setByline(doc.getByline().getOriginal());
-            newsStory.setHeadline(doc.getHeadline().getMain());
+            if(doc.getByline() != null)
+                newsStory.setByline(doc.getByline().getOriginal());
+            if(doc.getHeadline() != null)
+                newsStory.setHeadline(doc.getHeadline().getMain());
+            if(response.getMeta() != null){
+                newsStory.setHits(response.getMeta().getHits());
+            }
             newsStory.setPubDate(doc.getPubDate());
             newsStories.add(newsStory);
         }
     }
 
-    private String getThumbnailImageUrl(List<Multimedia> multimedias){
+    private static String getThumbnailImageUrl(List<Multimedia> multimedias){
         for(Multimedia multimedia : multimedias){
-            if(multimedia.getSubtype().equals("thumbnail")){
-                return "http://www.nytimes.com/" + multimedia.getUrl();
-            }
+            return "http://www.nytimes.com/" + multimedia.getUrl();
         }
         return null;
     }
 
 
-    public List<NewsStories> downloadArticleStories(int page){
+    public static List<NewsStories> downloadArticleStories(int page){
         String url = buildArticleStoriesUrl(page);
+        Log.d(TAG, "Article Stories URL: " + url);
+        return fetchArticleStories(url);
+    }
+
+    public static List<NewsStories> downloadArticleStories(String query, int page){
+        String url = buildArticleStoriesUrl(query,page);
         Log.d(TAG, "Article Stories URL: " + url);
         return fetchArticleStories(url);
     }

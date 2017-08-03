@@ -13,6 +13,7 @@ public class NewsStories {
     String mByline;
     String mId;
     boolean mIsThumbnailAvailable;
+    int mHits;
 
     public String getHeadline() {
         return mHeadline;
@@ -69,4 +70,26 @@ public class NewsStories {
     public void setThumbnailAvailable(boolean thumbnailAvailable) {
         mIsThumbnailAvailable = thumbnailAvailable;
     }
+
+    public int getHits() {
+        return mHits;
+    }
+
+    public void setHits(int hits) {
+        mHits = hits;
+    }
+
+    @Override
+    public String toString() {
+        return "Headline " +
+                mHeadline +
+                ", mPubDate " +
+                mPubDate +
+                ", mPubDate " + mPubDate +
+                ", mWebUrl " + mWebUrl +
+                ", mThumbnailUrl " + mThumbnailUrl +
+                ", mByline " + mByline;
+    }
+
+
 }
