@@ -6,7 +6,7 @@ import android.text.format.DateFormat;
 import com.google.gson.Gson;
 import com.myfitnesspal.assignment.newsapp.models.Doc;
 import com.myfitnesspal.assignment.newsapp.models.Multimedia;
-import com.myfitnesspal.assignment.newsapp.models.NewsStories;
+import com.myfitnesspal.assignment.newsapp.models.NewsStory;
 import com.myfitnesspal.assignment.newsapp.models.Response;
 
 import org.json.JSONException;
@@ -31,8 +31,12 @@ public class NetworkUtils {
     //API related configuration static variables
     private static final String ARTICLE_SEARCH_API = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     private static final String TOP_STORIES_HOME_API ="https://api.nytimes.com/svc/topstories/v2/home.json";
-   // private static final String API_KEY = "d31fe793adf546658bd67e2b6a7fd11a";
+    //Provided API key
+    //private static final String API_KEY = "d31fe793adf546658bd67e2b6a7fd11a";
+
+    //Personal API key
     private static final String API_KEY = "ba0867969a8e4e9687b9be1a6f01877c";
+
     private static final String PAGE_QUERY = "page";
     private static final String API_KEY_QUERY = "api-key";
     private static final String SORT_BY_NEWEST = "newest";
@@ -68,7 +72,7 @@ public class NetworkUtils {
     }
 
 
-    public static void parseItems(List<NewsStories> newsStories, JSONObject jsonResponse) {
+    public static void parseItems(List<NewsStory> newsStories, JSONObject jsonResponse) {
 
         Gson gson = new Gson();
         Response response = null;
@@ -76,7 +80,7 @@ public class NetworkUtils {
             response = gson.fromJson(jsonResponse.getString("response"), Response.class);
             List<Doc> listOfDocs = response.getDocs();
             for(Doc doc : listOfDocs){
-                NewsStories newsStory = new NewsStories();
+                NewsStory newsStory = new NewsStory();
                 if(doc.getMultimedia().size() > 0){
                     String thumbnailUrl = getThumbnailImageUrl(doc.getMultimedia());
                     if(thumbnailUrl != null){

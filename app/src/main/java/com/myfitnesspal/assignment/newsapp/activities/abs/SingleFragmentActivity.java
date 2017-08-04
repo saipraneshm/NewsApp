@@ -1,4 +1,4 @@
-package com.myfitnesspal.assignment.newsapp.abs;
+package com.myfitnesspal.assignment.newsapp.activities.abs;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;

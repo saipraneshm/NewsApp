@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.myfitnesspal.assignment.newsapp.R;
 import com.myfitnesspal.assignment.newsapp.activities.NewsFeedDetailActivity;
-import com.myfitnesspal.assignment.newsapp.models.NewsStories;
+import com.myfitnesspal.assignment.newsapp.models.NewsStory;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     private boolean isLoadingAdded = false;
     private Context mContext;
-    private List<NewsStories> mNewsStories;
+    private List<NewsStory> mNewsStories;
 
     //Constants for switching views
     private static final int ITEM = 0;
@@ -39,11 +39,11 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         mContext = context;
     }
 
-    public List<NewsStories> getNewsStories() {
+    public List<NewsStory> getNewsStories() {
         return mNewsStories;
     }
 
-    public void setNewsStories(List<NewsStories> newsStories) {
+    public void setNewsStories(List<NewsStory> newsStories) {
         if(mNewsStories != null && mNewsStories.size() >= 0)
             mNewsStories.clear();
         mNewsStories = newsStories;
@@ -74,7 +74,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        NewsStories newsStory = mNewsStories.get(position);
+        NewsStory newsStory = mNewsStories.get(position);
         //binds view based on position
         switch (getItemViewType(position)) {
             case ITEM:
@@ -100,21 +100,21 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     /*All the helper Methods */
 
     //Helper method to append data items and to notify the recycler view at the same time.
-    public void addMoreData(List<NewsStories> newsStories){
+    public void addMoreData(List<NewsStory> newsStories){
         int oldSize = mNewsStories.size() - 1;
         mNewsStories.addAll(newsStories);
         notifyItemRangeChanged(oldSize, mNewsStories.size());
     }
 
     //Another helper method to show progress bar
-    public void add(NewsStories newsStory){
+    public void add(NewsStory newsStory){
         mNewsStories.add(newsStory);
     }
 
     //Adds progress bar at the footer
     public void addLoadingFooter(){
         isLoadingAdded = true;
-        add(new NewsStories());
+        add(new NewsStory());
     }
 
     //Removes the loading footer
@@ -123,7 +123,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         isLoadingAdded = false;
 
         int position = mNewsStories.size() - 1;
-        NewsStories story = getItem(position);
+        NewsStory story = getItem(position);
 
         if(story != null){
             mNewsStories.remove(position);
@@ -133,7 +133,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
 
 
-    public NewsStories getItem(int position){
+    public NewsStory getItem(int position){
         return mNewsStories.get(position);
     }
 
@@ -158,7 +158,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         @BindView(R.id.cardView)
         CardView mCardView;
 
-        NewsStories mNewsStory;
+        NewsStory mNewsStory;
 
         public NewsFeedViewHolder(View itemView) {
             super(itemView);
@@ -166,7 +166,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             mCardView.setOnClickListener(this);
         }
 
-        public void bind(NewsStories newsStory){
+        public void bind(NewsStory newsStory){
             mNewsStory = newsStory;
                 Picasso.with(mContext)
                         .load(newsStory.getThumbnailUrl())

@@ -39,7 +39,7 @@ import com.myfitnesspal.assignment.newsapp.R;
 import com.myfitnesspal.assignment.newsapp.adapters.NewsFeedRecyclerViewAdapter;
 import com.myfitnesspal.assignment.newsapp.adapters.PaginationScrollListener;
 import com.myfitnesspal.assignment.newsapp.fragments.abs.VisibleFragment;
-import com.myfitnesspal.assignment.newsapp.models.NewsStories;
+import com.myfitnesspal.assignment.newsapp.models.NewsStory;
 import com.myfitnesspal.assignment.newsapp.utils.AppUtils;
 import com.myfitnesspal.assignment.newsapp.utils.ConnectivityBroadcastReceiver;
 import com.myfitnesspal.assignment.newsapp.utils.NetworkUtils;
@@ -221,7 +221,7 @@ public class NewsFeedFragment extends VisibleFragment implements
             mSaveTypedText = savedInstanceState.getString(SAVE_TYPED_QUERY);
             if(mFoundResults){
                 mAdapter.setNewsStories(savedInstanceState
-                        .<NewsStories>getParcelableArrayList(SAVE_NEWS_STORIES));
+                        .<NewsStory>getParcelableArrayList(SAVE_NEWS_STORIES));
                 mNewsFeedRecyclerView
                         .scrollToPosition(savedInstanceState.getInt(SAVE_FIRST_VISIBLE_ITEM_POSITION));
                 mCurrentPage = savedInstanceState.getInt(SAVE_CURRENT_PAGE);
@@ -319,7 +319,7 @@ public class NewsFeedFragment extends VisibleFragment implements
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        List<NewsStories> newsStories =  new ArrayList<>();
+                        List<NewsStory> newsStories =  new ArrayList<>();
                         NetworkUtils.parseItems(newsStories,response);
                         mLoadingProgressBar.setVisibility(View.GONE);
                         mSwipeRefreshLayout.setRefreshing(false);
@@ -417,7 +417,7 @@ public class NewsFeedFragment extends VisibleFragment implements
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        ArrayList<NewsStories> stories = (ArrayList<NewsStories>) mAdapter.getNewsStories();
+        ArrayList<NewsStory> stories = (ArrayList<NewsStory>) mAdapter.getNewsStories();
         outState.putInt(SAVE_CURRENT_PAGE,mCurrentPage);
         outState.putParcelableArrayList(SAVE_NEWS_STORIES, stories);
         outState.putInt(SAVE_FIRST_VISIBLE_ITEM_POSITION , mFirstVisibleItemPosition);

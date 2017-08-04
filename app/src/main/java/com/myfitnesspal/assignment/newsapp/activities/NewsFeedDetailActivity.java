@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
 
-import com.myfitnesspal.assignment.newsapp.abs.SingleFragmentActivity;
+import com.myfitnesspal.assignment.newsapp.activities.abs.SingleFragmentActivity;
 import com.myfitnesspal.assignment.newsapp.fragments.NewsFeedDetailFragment;
 
 public class NewsFeedDetailActivity extends SingleFragmentActivity {

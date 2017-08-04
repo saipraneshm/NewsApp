@@ -3,7 +3,7 @@ package com.myfitnesspal.assignment.newsapp.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class NewsStories implements Parcelable {
+public class NewsStory implements Parcelable {
 
     private String mHeadline;
     private String mPubDate;
@@ -108,10 +108,10 @@ public class NewsStories implements Parcelable {
         dest.writeInt(this.mHits);
     }
 
-    public NewsStories() {
+    public NewsStory() {
     }
 
-    protected NewsStories(Parcel in) {
+    protected NewsStory(Parcel in) {
         this.mHeadline = in.readString();
         this.mPubDate = in.readString();
         this.mWebUrl = in.readString();
@@ -122,15 +122,15 @@ public class NewsStories implements Parcelable {
         this.mHits = in.readInt();
     }
 
-    public static final Parcelable.Creator<NewsStories> CREATOR = new Parcelable.Creator<NewsStories>() {
+    public static final Parcelable.Creator<NewsStory> CREATOR = new Parcelable.Creator<NewsStory>() {
         @Override
-        public NewsStories createFromParcel(Parcel source) {
-            return new NewsStories(source);
+        public NewsStory createFromParcel(Parcel source) {
+            return new NewsStory(source);
         }
 
         @Override
-        public NewsStories[] newArray(int size) {
-            return new NewsStories[size];
+        public NewsStory[] newArray(int size) {
+            return new NewsStory[size];
         }
     };
 }

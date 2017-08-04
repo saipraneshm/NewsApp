@@ -28,11 +28,7 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
-        ConnectivityManager connectivityManager = (ConnectivityManager)
-                context.getSystemService(Context.CONNECTIVITY_SERVICE );
-        boolean isNetworkAvailable = connectivityManager.getActiveNetworkInfo() != null;
-        boolean isConnected = isNetworkAvailable &&
-                connectivityManager.getActiveNetworkInfo().isConnected();
+        boolean isConnected = AppUtils.isNetworkAvailableAndConnected(context);
         if(!isConnected){
             TextView textView = (TextView) mRootView.findViewById(R.id.error_message_text_view);
             textView.setText(R.string.no_internet_message);
