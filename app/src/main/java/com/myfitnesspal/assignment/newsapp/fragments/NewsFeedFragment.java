@@ -1,9 +1,9 @@
 package com.myfitnesspal.assignment.newsapp.fragments;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.hardware.input.InputManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -23,12 +24,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.myfitnesspal.assignment.newsapp.R;
 import com.myfitnesspal.assignment.newsapp.adapters.NewsFeedRecyclerViewAdapter;
 import com.myfitnesspal.assignment.newsapp.adapters.PaginationScrollListener;
+import com.myfitnesspal.assignment.newsapp.fragments.abs.VisibleFragment;
 import com.myfitnesspal.assignment.newsapp.models.NewsStories;
+import com.myfitnesspal.assignment.newsapp.utils.AppUtils;
+import com.myfitnesspal.assignment.newsapp.utils.ConnectivityBroadcastReceiver;
 import com.myfitnesspal.assignment.newsapp.utils.NetworkUtil;
 
 import java.util.ArrayList;
@@ -41,7 +46,9 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<NewsStories>>, SharedPreferences.OnSharedPreferenceChangeListener {
+public class NewsFeedFragment extends VisibleFragment implements
+        LoaderManager.LoaderCallbacks<List<NewsStories>>,
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
 
     private static final String SEARCH_QUERY_EXTRA = "searchQueryExtra";
@@ -54,6 +61,15 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
 
     @BindView(R.id.loading_feed_progress_bar)
     ProgressBar mLoadingProgressBar;
+
+    @BindView(R.id.news_feed_fragment_frame_layout)
+    FrameLayout mFrameLayout;
+
+    @BindView(R.id.error_message)
+    FrameLayout mErrorMessageFL;
+
+    @BindView(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     private static final int NEWS_STORY_SEARCH_LOADER = 25;
     private static final String TAG = NewsFeedFragment.class.getSimpleName();
@@ -148,7 +164,13 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
                     .scrollToPosition(savedInstanceState.getInt(SAVE_FIRST_VISIBLE_ITEM_POSITION));
             mCurrentPage = savedInstanceState.getInt(SAVE_CURRENT_PAGE);
         }else{
-            loadFirstPage();
+            if(AppUtils.isNetworkAvailableAndConnected(getActivity()))
+                loadFirstPage();
+            else{
+                mNewsFeedRecyclerView.setVisibility(View.GONE);
+                mErrorMessageFL.setVisibility(View.VISIBLE);
+            }
+
         }
 
 
@@ -276,6 +298,7 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
                 if( mCurrentPage != mTotalPages) mAdapter.addLoadingFooter();
                 else isLastPage = true;
             }else{
+
                 isFirstPageLoading = false;
                 mTotalPages = data.get(0).getHits() / 10 - 1;
                 mAdapter.setNewsStories(data);
@@ -309,5 +332,12 @@ public class NewsFeedFragment extends Fragment implements LoaderManager.LoaderCa
         outState.putInt(SAVE_CURRENT_PAGE,mCurrentPage);
         outState.putParcelableArrayList(SAVE_NEWS_STORIES, stories);
         outState.putInt(SAVE_FIRST_VISIBLE_ITEM_POSITION , mFirstVisibleItemPosition);
+    }
+
+
+
+    @Override
+    protected BroadcastReceiver createConnectivityBroadcastReceiver() {
+        return new ConnectivityBroadcastReceiver(mFrameLayout);
     }
 }

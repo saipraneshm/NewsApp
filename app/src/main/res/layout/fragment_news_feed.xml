@@ -1,6 +1,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:tools="http://schemas.android.com/tools"
              tools:context="com.myfitnesspal.assignment.newsapp.fragments.NewsFeedFragment"
+             android:id="@+id/news_feed_fragment_frame_layout"
              android:layout_height="match_parent"
              android:layout_width="match_parent">
 
@@ -11,13 +12,21 @@
         android:visibility="gone"
         android:layout_gravity="center_horizontal|center_vertical"/>
 
-    <android.support.v7.widget.RecyclerView
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/news_feed_fragment_recycler_view">
+        android:layout_height="match_parent">
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/news_feed_fragment_recycler_view">
+        </android.support.v7.widget.RecyclerView>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-    </android.support.v7.widget.RecyclerView>
-
+    <include
+        android:id="@+id/error_message"
+        layout="@layout/show_error_message_layout"
+        android:visibility="gone"/>
 </FrameLayout>
 
 

@@ -1,12 +1,15 @@
 package com.myfitnesspal.assignment.newsapp.fragments;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,10 +20,14 @@ import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.myfitnesspal.assignment.newsapp.R;
 import com.myfitnesspal.assignment.newsapp.activities.NewsFeedDetailActivity;
+import com.myfitnesspal.assignment.newsapp.fragments.abs.VisibleFragment;
+import com.myfitnesspal.assignment.newsapp.utils.AppUtils;
+import com.myfitnesspal.assignment.newsapp.utils.ConnectivityBroadcastReceiver;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,7 +36,7 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NewsFeedDetailFragment extends Fragment {
+public class NewsFeedDetailFragment extends VisibleFragment {
 
 
     private static final String ARG_URI = "photo_page_url";
@@ -40,6 +47,12 @@ public class NewsFeedDetailFragment extends Fragment {
 
     @BindView(R.id.web_view_progress_bar)
     ProgressBar mProgressBar;
+
+    @BindView(R.id.news_detail_fragment_cl)
+    ConstraintLayout mConstraintLayout;
+
+    @BindView(R.id.error_message)
+    FrameLayout mErrorMessageFL;
 
     public NewsFeedDetailFragment() {
         // Required empty public constructor
@@ -97,7 +110,13 @@ public class NewsFeedDetailFragment extends Fragment {
         });
 
         mWebView.setWebViewClient(new WebViewClient());
-        mWebView.loadUrl(mUri.toString());
+        if(AppUtils.isNetworkAvailableAndConnected(getActivity()))
+            mWebView.loadUrl(mUri.toString());
+        else{
+            mWebView.setVisibility(View.GONE);
+            mErrorMessageFL.setVisibility(View.VISIBLE);
+        }
+
         // Inflate the layout for this fragment
         return view;
     }
@@ -135,4 +154,8 @@ public class NewsFeedDetailFragment extends Fragment {
     }
 
 
+    @Override
+    protected BroadcastReceiver createConnectivityBroadcastReceiver() {
+        return new ConnectivityBroadcastReceiver(mConstraintLayout);
+    }
 }
