@@ -6,10 +6,10 @@ import android.net.NetworkInfo;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
-/**
- * Created by saip92 on 8/3/2017.
- */
 
+/**
+ * A utility class that helps to check internet availability and to hide keyboard
+ * */
 public class AppUtils {
     public static boolean isNetworkAvailableAndConnected(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager)

@@ -3,20 +3,16 @@ package com.myfitnesspal.assignment.newsapp.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by saip92 on 8/2/2017.
- */
-
 public class NewsStories implements Parcelable {
 
-    String mHeadline;
-    String mPubDate;
-    String mWebUrl;
-    String mThumbnailUrl;
-    String mByline;
-    String mId;
-    boolean mIsThumbnailAvailable;
-    int mHits;
+    private String mHeadline;
+    private String mPubDate;
+    private String mWebUrl;
+    private String mThumbnailUrl;
+    private String mByline;
+    private String mId;
+    private boolean mIsThumbnailAvailable;
+    private int mHits;
 
     public String getHeadline() {
         return mHeadline;

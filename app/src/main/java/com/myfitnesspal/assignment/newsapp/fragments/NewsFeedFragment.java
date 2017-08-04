@@ -2,15 +2,11 @@ package com.myfitnesspal.assignment.newsapp.fragments;
 
 
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,9 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -41,7 +35,6 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.myfitnesspal.assignment.newsapp.R;
 import com.myfitnesspal.assignment.newsapp.adapters.NewsFeedRecyclerViewAdapter;
 import com.myfitnesspal.assignment.newsapp.adapters.PaginationScrollListener;
@@ -49,7 +42,7 @@ import com.myfitnesspal.assignment.newsapp.fragments.abs.VisibleFragment;
 import com.myfitnesspal.assignment.newsapp.models.NewsStories;
 import com.myfitnesspal.assignment.newsapp.utils.AppUtils;
 import com.myfitnesspal.assignment.newsapp.utils.ConnectivityBroadcastReceiver;
-import com.myfitnesspal.assignment.newsapp.utils.NetworkUtil;
+import com.myfitnesspal.assignment.newsapp.utils.NetworkUtils;
 
 import org.json.JSONObject;
 
@@ -61,17 +54,22 @@ import butterknife.ButterKnife;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment responsible to fetch data from NYtimes API and displays them in a list view
  */
 public class NewsFeedFragment extends VisibleFragment implements
         SharedPreferences.OnSharedPreferenceChangeListener {
 
+
+    //Constants for saving data and maintaining state across configuration changes
     private static final String SAVE_NEWS_STORIES = "saveNewsStories";
     private static final String SAVE_FIRST_VISIBLE_ITEM_POSITION = "saveFirstVisibleItemPosition";
     private static final String SAVE_BOOLEAN_RESULTS_FOUND = "saveBooleanResultsFound";
     private static final String SAVE_QUERY_TAG = "save_query_tag";
     private static final String SAVE_CURRENT_PAGE = "saveQueryForRotation";
+    private static final String SAVE_TYPED_QUERY = "saveTypedQuery";
 
+
+    //Binding views using ButterKnife
     @BindView(R.id.news_feed_fragment_recycler_view)
     RecyclerView mNewsFeedRecyclerView;
 
@@ -96,23 +94,29 @@ public class NewsFeedFragment extends VisibleFragment implements
     SearchView searchView;
     MenuItem searchItem;
 
+    //Used for debugging purpose
     private static final String TAG = NewsFeedFragment.class.getSimpleName();
 
+    //Member variables needed for the scroll listener
     private static final int PAGE_START = 0;
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private int mTotalPages = 5;
     private int mCurrentPage = PAGE_START;
     private boolean isFirstPageLoading = false;
-
-    private SharedPreferences mSharedPreferences;
-
-
     private NewsFeedRecyclerViewAdapter mAdapter;
     private int mFirstVisibleItemPosition = 0;
 
+    //To persist user query
+    private SharedPreferences mSharedPreferences;
+
+    //Volley request queue
     private RequestQueue mRequestQueue;
+
+
     private boolean mFoundResults = true;
+    private String mSaveTypedText;
+
 
 
     public NewsFeedFragment() {
@@ -131,6 +135,7 @@ public class NewsFeedFragment extends VisibleFragment implements
         setRetainInstance(true);
 
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        //listening for changes in SharedPreferences and handling changes accordingly
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
 
@@ -145,10 +150,11 @@ public class NewsFeedFragment extends VisibleFragment implements
         ButterKnife.bind(this,view);
         ButterKnife.setDebug(true);
 
+        //Setting support toolbar as the action toolbar
         mToolbar.setTitleTextColor(getResources().getColor(R.color.white));
         ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
 
-
+        //Instantiating News feed fragment recycler view
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         mNewsFeedRecyclerView.setLayoutManager(linearLayoutManager);
         mAdapter = new NewsFeedRecyclerViewAdapter(getActivity());
@@ -158,7 +164,6 @@ public class NewsFeedFragment extends VisibleFragment implements
             protected void loadMoreItems() {
                 isLoading = true;
                 mCurrentPage += 1;
-
                 loadNextPage();
             }
 
@@ -181,30 +186,39 @@ public class NewsFeedFragment extends VisibleFragment implements
             public void getFirstVisibleItemPosition(int position) {
                 mFirstVisibleItemPosition = position;
             }
+
         });
 
         Cache cache = new DiskBasedCache(getActivity().getCacheDir(), 1024 * 1024);
         Network network = new BasicNetwork(new HurlStack());
+        //Caching volley requests for better performance
         mRequestQueue =  new RequestQueue(cache, network);
         mRequestQueue.start();
 
+
+        //Swipe to refresh results
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 if(AppUtils.isNetworkAvailableAndConnected(getActivity())){
+                    mCurrentPage = 0;
                     isFirstPageLoading = true;
                     makeActionSearchApiQuery(0);
                 }
             }
         });
 
+        //Setting colors to the loading indicator
         mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
 
+
+        //Here's where we handle configuration changes
         if(savedInstanceState != null){
 
+            mSaveTypedText = savedInstanceState.getString(SAVE_TYPED_QUERY);
             if(mFoundResults){
                 mAdapter.setNewsStories(savedInstanceState
                         .<NewsStories>getParcelableArrayList(SAVE_NEWS_STORIES));
@@ -235,6 +249,8 @@ public class NewsFeedFragment extends VisibleFragment implements
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.activity_main_menu, menu);
 
+
+        //Fetching SearchView and handling user inputs
         searchItem = menu.findItem(R.id.app_bar_search);
         searchView = (SearchView) searchItem.getActionView();
         searchItem.setIcon(R.drawable.ic_search_white_24dp);
@@ -248,21 +264,28 @@ public class NewsFeedFragment extends VisibleFragment implements
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                return false;
+                mSaveTypedText = newText;
+                return true;
             }
         });
 
+        //Makes sure that user's data is saved across device rotation
         searchView.setOnSearchClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String query = getQuery();
-                if(query != null && !TextUtils.isEmpty(query))
-                    searchView.setQuery(query,false);
+                if(query != null && !TextUtils.isEmpty(query)) {
+                    searchView.setQuery(query, false);
+                }else if(mSaveTypedText != null && !TextUtils.isEmpty(mSaveTypedText)){
+                    searchView.setQuery(mSaveTypedText,false);
+                }
+
             }
         });
 
         searchView.setQueryHint(getString(R.string.search_for_news_articles));
 
+        //Helper method to close and clear out searchview focus
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
@@ -274,7 +297,9 @@ public class NewsFeedFragment extends VisibleFragment implements
         });
     }
 
+    //Loads the first page
     private void loadFirstPage(){
+        mCurrentPage = 0;
         isFirstPageLoading = true;
         hideNoResultsFoundMessage();
         mNewsFeedRecyclerView.setVisibility(View.GONE);
@@ -282,18 +307,20 @@ public class NewsFeedFragment extends VisibleFragment implements
         makeActionSearchApiQuery(0);
     }
 
+    //Loads consequent pages
     private void loadNextPage(){
         makeActionSearchApiQuery(mCurrentPage);
     }
 
+    //Performs HTTP request and fetches the data asynchronously
     private void makeActionSearchApiQuery(int page){
-        String url = NetworkUtil.buildArticleStoriesUrl(getQuery(), page);
+        String url = NetworkUtils.buildArticleStoriesUrl(getQuery(), page);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         List<NewsStories> newsStories =  new ArrayList<>();
-                        NetworkUtil.parseItems(newsStories,response);
+                        NetworkUtils.parseItems(newsStories,response);
                         mLoadingProgressBar.setVisibility(View.GONE);
                         mSwipeRefreshLayout.setRefreshing(false);
                         if(newsStories.size() > 0){
@@ -309,10 +336,12 @@ public class NewsFeedFragment extends VisibleFragment implements
                             }else{
                                 isFirstPageLoading = false;
                                 mNewsFeedRecyclerView.scrollToPosition(0);
-                                mTotalPages = newsStories.get(0).getHits() / 10 - 1;
+                                Log.d(TAG,"Number of hits: " + newsStories.get(0).getHits() + ", mCurrentPAge " + mCurrentPage);
+                                mTotalPages = newsStories.get(0).getHits() / 10 ;
                                 mAdapter.setNewsStories(newsStories);
+
                                 if (mCurrentPage <= mTotalPages) mAdapter.addLoadingFooter();
-                                else isLastPage = true;
+                                else{ isLastPage = true; isLoading = false; }
                             }
                         }else{
                             showNoResultsFoundMessage();
@@ -324,6 +353,16 @@ public class NewsFeedFragment extends VisibleFragment implements
                     public void onErrorResponse(VolleyError error) {
                         mLoadingProgressBar.setVisibility(View.GONE);
                         mSwipeRefreshLayout.setRefreshing(false);
+                        mAdapter.removeLoadingFooter();
+                        final Snackbar snackbar = Snackbar.make(mFrameLayout,R.string.no_more_search_results,
+                                Snackbar.LENGTH_SHORT);
+                        snackbar.setActionTextColor(getActivity().getResources().getColor(R.color.colorPrimary))
+                                .setAction(R.string.dismiss, new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        snackbar.dismiss();
+                                    }
+                                }).show();
                     }
                 });
         mRequestQueue.add(jsonObjectRequest);
@@ -331,6 +370,7 @@ public class NewsFeedFragment extends VisibleFragment implements
 
     }
 
+    //Helper method to display error message
     private void showNoResultsFoundMessage(){
         mFoundResults = false;
         mNewsFeedRecyclerView.setVisibility(View.GONE);
@@ -338,6 +378,8 @@ public class NewsFeedFragment extends VisibleFragment implements
         mErrorMessageTextView.setText(R.string.no_results_found);
     }
 
+
+    //Helper method to hide error message
     private void hideNoResultsFoundMessage(){
         if(mErrorMessageFL.getVisibility() == View.VISIBLE){
             mFoundResults = false;
@@ -345,6 +387,7 @@ public class NewsFeedFragment extends VisibleFragment implements
         }
     }
 
+    //Persists user query
     private void saveQuery(String query){
         mSharedPreferences
                 .edit()
@@ -352,6 +395,7 @@ public class NewsFeedFragment extends VisibleFragment implements
                 .apply();
     }
 
+    //Fetches user query
     private String getQuery(){
         return mSharedPreferences.getString(SAVE_QUERY_TAG, null);
     }
@@ -378,6 +422,7 @@ public class NewsFeedFragment extends VisibleFragment implements
         outState.putParcelableArrayList(SAVE_NEWS_STORIES, stories);
         outState.putInt(SAVE_FIRST_VISIBLE_ITEM_POSITION , mFirstVisibleItemPosition);
         outState.putBoolean(SAVE_BOOLEAN_RESULTS_FOUND, mFoundResults);
+        outState.putString(SAVE_TYPED_QUERY, mSaveTypedText);
     }
 
 

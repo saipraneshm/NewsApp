@@ -8,14 +8,15 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.myfitnesspal.assignment.newsapp.R;
 
-/**
- * Created by saip92 on 8/2/2017.
- */
+/*
+* An abstract class that helps to load a single fragment
+ * */
 
 public abstract class SingleFragmentActivity extends AppCompatActivity {
 
 
     protected abstract Fragment createFragment();
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

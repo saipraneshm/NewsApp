@@ -11,12 +11,8 @@ import android.view.View;
 
 import com.myfitnesspal.assignment.newsapp.utils.ConnectivityBroadcastReceiver;
 
-/**
- * Created by saip92 on 8/3/2017.
- */
 
 public abstract class VisibleFragment extends Fragment {
-    private static final String TAG = VisibleFragment.class.getSimpleName();
 
     private BroadcastReceiver connectivityReceiver = null;
     @Override

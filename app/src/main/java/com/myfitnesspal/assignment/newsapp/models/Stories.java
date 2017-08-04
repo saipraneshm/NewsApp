@@ -3,10 +3,6 @@ package com.myfitnesspal.assignment.newsapp.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Created by saip92 on 8/2/2017.
- */
-
 public class Stories {
     @SerializedName("response")
     @Expose

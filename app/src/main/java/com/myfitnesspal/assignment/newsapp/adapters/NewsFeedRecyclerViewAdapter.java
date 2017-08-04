@@ -29,7 +29,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     private boolean isLoadingAdded = false;
     private Context mContext;
-    List<NewsStories> mNewsStories;
+    private List<NewsStories> mNewsStories;
 
     //Constants for switching views
     private static final int ITEM = 0;
@@ -37,11 +37,6 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     public NewsFeedRecyclerViewAdapter(Context context){
         mContext = context;
-    }
-
-    public NewsFeedRecyclerViewAdapter(Context context, List<NewsStories> newsStories){
-        mContext = context;
-        mNewsStories = newsStories;
     }
 
     public List<NewsStories> getNewsStories() {
@@ -63,6 +58,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         RecyclerView.ViewHolder viewHolder = null;
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
         switch(viewType){
             case ITEM:
                 View itemView = inflater.inflate(R.layout.news_list_item_layout,parent, false);
@@ -79,6 +75,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         NewsStories newsStory = mNewsStories.get(position);
+        //binds view based on position
         switch (getItemViewType(position)) {
             case ITEM:
                 NewsFeedViewHolder storiesViewHolder = (NewsFeedViewHolder) holder;
@@ -120,6 +117,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         add(new NewsStories());
     }
 
+    //Removes the loading footer
     public void removeLoadingFooter(){
         if(mNewsStories.size() <= 0) return;
         isLoadingAdded = false;
@@ -132,6 +130,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             notifyItemRemoved(position);
         }
     }
+
 
 
     public NewsStories getItem(int position){
@@ -192,8 +191,15 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     class LoadingViewHolder extends RecyclerView.ViewHolder{
 
+        @BindView(R.id.show_no_more_result_tv)
+        TextView mNoResultsTextView;
+
+        @BindView(R.id.loading_footer_progress_bar)
+        ProgressBar mProgressBar;
+
         public LoadingViewHolder(View itemView) {
             super(itemView);
+            ButterKnife.bind(this,itemView);
         }
     }
 

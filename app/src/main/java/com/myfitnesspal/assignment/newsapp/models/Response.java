@@ -5,9 +5,6 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-/**
- * Created by saip92 on 8/2/2017.
- */
 
 public class Response {
     @SerializedName("meta")

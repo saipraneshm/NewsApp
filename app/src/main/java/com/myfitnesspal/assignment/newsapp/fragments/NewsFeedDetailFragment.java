@@ -37,7 +37,7 @@ import butterknife.ButterKnife;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment responsible to render WebViews to the  user
  */
 public class NewsFeedDetailFragment extends VisibleFragment {
 

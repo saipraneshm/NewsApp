@@ -2,14 +2,13 @@ package com.myfitnesspal.assignment.newsapp.adapters;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
-/**
- * Created by saip92 on 8/3/2017.
- */
-
+/*A custom scroll listener that calls load more items when it reaches the last page of the current search results */
 public abstract class PaginationScrollListener extends RecyclerView.OnScrollListener {
 
-    LinearLayoutManager layoutManager;
+    private static final String TAG = PaginationScrollListener.class.getSimpleName();
+    private LinearLayoutManager layoutManager;
 
     public PaginationScrollListener(LinearLayoutManager layoutManager) {
         this.layoutManager = layoutManager;
@@ -24,9 +23,13 @@ public abstract class PaginationScrollListener extends RecyclerView.OnScrollList
         int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
         getFirstVisibleItemPosition(firstVisibleItemPosition);
 
+       /* Log.d(TAG, "totalcount: " + totalItemCount + ", visibleCount " + visibleItemCount +
+                ", firstvisible: " + firstVisibleItemPosition + " " +" is lastPage: " + isLastPage()
+         + " isLOading: " + isLoading());*/
         if (!isLoading() && !isLastPage()) {
             if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
                     && firstVisibleItemPosition >= 0) {
+                Log.d(TAG,"calling load more");
                 loadMoreItems();
             }
         }
@@ -41,6 +44,7 @@ public abstract class PaginationScrollListener extends RecyclerView.OnScrollList
     public abstract boolean isLoading();
 
     public abstract void getFirstVisibleItemPosition(int position);
+
 
 
 }

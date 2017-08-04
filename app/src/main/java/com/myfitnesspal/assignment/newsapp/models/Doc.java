@@ -1,9 +1,4 @@
 package com.myfitnesspal.assignment.newsapp.models;
-
-/**
- * Created by saip92 on 8/2/2017.
- */
-
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

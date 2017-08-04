@@ -11,8 +11,10 @@ import android.widget.TextView;
 
 import com.myfitnesspal.assignment.newsapp.R;
 
+
 /**
- * Created by saip92 on 8/3/2017.
+ * This class is used to listen to changes in network connectivity and handles screen changes
+ * accordingly
  */
 
 public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
@@ -64,7 +66,6 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
                                 @Override
                                 public void onClick(View view) {
                                     mRootView.findViewById(R.id.web_view).setVisibility(View.VISIBLE);
-                                    //mRootView.findViewById(R.id.web_view_progress_bar).setVisibility(View.VISIBLE);
                                     snackbar.dismiss();
 
                                 }
