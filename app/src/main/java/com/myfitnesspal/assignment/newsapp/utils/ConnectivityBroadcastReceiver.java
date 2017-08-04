@@ -52,7 +52,6 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
             }
             mRootView.findViewById(R.id.error_message).setVisibility(View.VISIBLE);
             mLastRootView = mRootView;
-
         }else{
 
             if(mLastRootView == mRootView){

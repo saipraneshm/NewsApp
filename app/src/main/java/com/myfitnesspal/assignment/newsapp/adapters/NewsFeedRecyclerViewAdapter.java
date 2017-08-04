@@ -85,7 +85,6 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                 storiesViewHolder.bind(newsStory);
                 break;
             case LOADING:
-//                Do nothing
                 break;
         }
     }

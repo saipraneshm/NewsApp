@@ -63,49 +63,6 @@ public class NetworkUtil {
 
 
 
-    public static byte[] getUrlBytes(String urlSpec) throws IOException{
-        URL url = new URL(urlSpec);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        try{
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            InputStream inputStream = connection.getInputStream();
-
-            if(connection.getResponseCode() != HttpURLConnection.HTTP_OK){
-                throw new IOException(connection.getResponseMessage()
-                        + ": with " + urlSpec);
-            }
-
-            int bytesRead = 0;
-            byte[] buffer = new byte[1024];
-            while((bytesRead = inputStream.read(buffer))> 0){
-                out.write(buffer, 0 , bytesRead);
-            }
-            out.close();
-            return out.toByteArray();
-        }finally {
-            connection.disconnect();
-        }
-
-
-    }
-
-
-    public static String getUrlString(String urlSpec) throws IOException{
-        return new String(getUrlBytes(urlSpec));
-    }
-
-
-
-    private static String buildArticleStoriesUrl(int page){
-        Uri.Builder builder = ARTICLE_SEARCH_ENDPOINT.buildUpon();
-        if(page >=0){
-            return builder.appendQueryParameter(PAGE_QUERY, String.valueOf(page)).build().toString();
-        }else{
-            return null;
-        }
-    }
 
     public static String buildArticleStoriesUrl(String query, int page){
         Uri.Builder builder = ARTICLE_SEARCH_ENDPOINT.buildUpon();
@@ -121,27 +78,6 @@ public class NetworkUtil {
         }
     }
 
-    private static String buildTopStoriesUrl(){
-        return TOP_STORIES_ENDPOINT.buildUpon().build().toString();
-    }
-
-
-
-    private static List<NewsStories> fetchArticleStories(String url) {
-        List<NewsStories> newsStories = new ArrayList<>();
-        try{
-            String jsonString = getUrlString(url);
-            Log.d(TAG, "Received Json Object" +jsonString);
-            JSONObject jsonObject = new JSONObject(jsonString);
-            parseItems(newsStories, jsonObject);
-        }catch (JSONException e) {
-            Log.e(TAG, "Failed to parse json", e);
-        }
-        catch (IOException ioe) {
-            Log.e(TAG, "Failed to fetch items: ", ioe);
-        }
-        return newsStories;
-    }
 
     public static void parseItems(List<NewsStories> newsStories, JSONObject jsonResponse) {
 
@@ -150,7 +86,6 @@ public class NetworkUtil {
         try {
             response = gson.fromJson(jsonResponse.getString("response"), Response.class);
         } catch (JSONException e) {
-            Log.d(TAG, "Volley request failure");
             e.printStackTrace();
         }
         List<Doc> listOfDocs = response.getDocs();
@@ -193,14 +128,10 @@ public class NetworkUtil {
                     }
                     String date = DateFormat.format("EEE, MMM dd yyyy",pubDate).toString();
                     newsStory.setPubDate(date);
-
-                    //newsStory.setPubDate("Not available");
                 }
             }else{
                 newsStory.setPubDate("Not available");
             }
-
-            //newsStory.setPubDate(doc.getPubDate());
             newsStories.add(newsStory);
         }
 
@@ -214,16 +145,6 @@ public class NetworkUtil {
     }
 
 
-    public static List<NewsStories> downloadArticleStories(int page){
-        String url = buildArticleStoriesUrl(page);
-        Log.d(TAG, "Article Stories URL: " + url);
-        return fetchArticleStories(url);
-    }
 
-    public static List<NewsStories> downloadArticleStories(String query, int page){
-        String url = buildArticleStoriesUrl(query,page);
-        Log.d(TAG, "Article Stories URL: " + url);
-        return fetchArticleStories(url);
-    }
 
 }

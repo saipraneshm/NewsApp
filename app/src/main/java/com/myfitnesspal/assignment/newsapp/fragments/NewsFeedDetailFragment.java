@@ -17,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -28,6 +29,8 @@ import com.myfitnesspal.assignment.newsapp.activities.NewsFeedDetailActivity;
 import com.myfitnesspal.assignment.newsapp.fragments.abs.VisibleFragment;
 import com.myfitnesspal.assignment.newsapp.utils.AppUtils;
 import com.myfitnesspal.assignment.newsapp.utils.ConnectivityBroadcastReceiver;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -110,14 +113,21 @@ public class NewsFeedDetailFragment extends VisibleFragment {
         });
 
         mWebView.setWebViewClient(new WebViewClient());
-        if(AppUtils.isNetworkAvailableAndConnected(getActivity()))
-            mWebView.loadUrl(mUri.toString());
+        if(AppUtils.isNetworkAvailableAndConnected(getActivity())){
+            boolean isHttp = URLUtil.isHttpUrl(mUri.toString());
+            boolean isHttps = URLUtil.isHttpsUrl(mUri.toString());
+            if(isHttp || isHttps)
+                mWebView.loadUrl(mUri.toString());
+            else{
+                Intent i = new Intent(Intent.ACTION_VIEW, mUri);
+                startActivity(i);
+            }
+        }
         else{
             mWebView.setVisibility(View.GONE);
             mErrorMessageFL.setVisibility(View.VISIBLE);
         }
 
-        // Inflate the layout for this fragment
         return view;
     }
 
