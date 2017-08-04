@@ -13,5 +13,9 @@
     <string name="dismiss">Dismiss</string>
     <string name="continue_message">continue</string>
     <string name="internet_connection_available">Connected to internet.</string>
-    <string name="show_no_internet_message">No internet connectivity. Please try again after sometime</string>
+    <string name="no_internet_message">No internet connectivity. Please try again after sometime</string>
+    <string name="refresh">Refresh</string>
+    <string name="clear">Clear</string>
+    <string name="click_on_refresh">Click on refresh to load results</string>
+    <string name="no_results_found">No results found. Please try searching with other results</string>
 </resources>

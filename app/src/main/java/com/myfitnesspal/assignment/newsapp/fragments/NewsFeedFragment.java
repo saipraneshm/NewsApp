@@ -26,7 +26,19 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.myfitnesspal.assignment.newsapp.R;
 import com.myfitnesspal.assignment.newsapp.adapters.NewsFeedRecyclerViewAdapter;
 import com.myfitnesspal.assignment.newsapp.adapters.PaginationScrollListener;
@@ -35,6 +47,8 @@ import com.myfitnesspal.assignment.newsapp.models.NewsStories;
 import com.myfitnesspal.assignment.newsapp.utils.AppUtils;
 import com.myfitnesspal.assignment.newsapp.utils.ConnectivityBroadcastReceiver;
 import com.myfitnesspal.assignment.newsapp.utils.NetworkUtil;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +82,9 @@ public class NewsFeedFragment extends VisibleFragment implements
     @BindView(R.id.error_message)
     FrameLayout mErrorMessageFL;
 
+    @BindView(R.id.error_message_text_view)
+    TextView mErrorMessageTextView;
+
     @BindView(R.id.swipeRefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
 
@@ -89,6 +106,9 @@ public class NewsFeedFragment extends VisibleFragment implements
     private NewsFeedRecyclerViewAdapter mAdapter;
     private int mFirstVisibleItemPosition = 0;
 
+    private RequestQueue mRequestQueue;
+
+
     public NewsFeedFragment() {
         // Required empty public constructor
     }
@@ -108,6 +128,7 @@ public class NewsFeedFragment extends VisibleFragment implements
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
+
     }
 
     @Override
@@ -117,9 +138,8 @@ public class NewsFeedFragment extends VisibleFragment implements
         View view = inflater.inflate(R.layout.fragment_news_feed, container, false);
         ButterKnife.bind(this,view);
 
+        Log.d(TAG,"oncreateview called");
         ButterKnife.setDebug(true);
-       // mNewsFeedRecyclerView =(RecyclerView) view.findViewById(R.id.news_feed_fragment_recycler_view);
-       // mLoadingProgressBar = (ProgressBar) view.findViewById(R.id.loading_feed_progress_bar);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         mNewsFeedRecyclerView.setLayoutManager(linearLayoutManager);
 
@@ -156,6 +176,13 @@ public class NewsFeedFragment extends VisibleFragment implements
             }
         });
 
+        Cache cache = new DiskBasedCache(getActivity().getCacheDir(), 1024 * 1024); // 1MB cap
+
+        // Set up the network to use HttpURLConnection as the HTTP client.
+        Network network = new BasicNetwork(new HurlStack());
+
+        mRequestQueue =  new RequestQueue(cache, network);
+        mRequestQueue.start();
 
         if(savedInstanceState != null){
             mAdapter.setNewsStories(savedInstanceState
@@ -190,10 +217,8 @@ public class NewsFeedFragment extends VisibleFragment implements
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, " Submitted query: " + query);
-                InputMethodManager im = (InputMethodManager) getActivity()
-                        .getSystemService(Context.INPUT_METHOD_SERVICE);
-                im.hideSoftInputFromInputMethod(searchView.getWindowToken(),0);
-                searchView.clearFocus();
+                AppUtils.hideKeyboard(getActivity(),searchView);
+                //searchView.clearFocus();
                 saveQuery(query);
                 return true;
             }
@@ -207,11 +232,18 @@ public class NewsFeedFragment extends VisibleFragment implements
 
     private void loadFirstPage(){
         isFirstPageLoading = true;
-        makeActionSearchApiQuery(getQuery(),0);
+        mNewsFeedRecyclerView.setVisibility(View.GONE);
+        mLoadingProgressBar.setVisibility(View.VISIBLE);
+        Log.d(TAG, "current page: " + mCurrentPage + " " + isFirstPageLoading);
+        //makeActionSearchApiQuery(getQuery(),0);
+        //makeActionSearchApiQuery(0);
+
+
     }
 
     private void loadNextPage(){
-        makeActionSearchApiQuery(getQuery(), mCurrentPage);
+       // makeActionSearchApiQuery(getQuery(), mCurrentPage);
+        makeActionSearchApiQuery(mCurrentPage);
     }
 
     private void makeActionSearchApiQuery(String query, int page){
@@ -227,6 +259,55 @@ public class NewsFeedFragment extends VisibleFragment implements
         }else{
             loaderManager.restartLoader(NEWS_STORY_SEARCH_LOADER, queryBundle,this);
         }
+    }
+
+    private void makeActionSearchApiQuery(int page){
+        String url = NetworkUtil.buildArticleStoriesUrl(getQuery(), page);
+        Log.d(TAG, "making request with volley: " + url);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG, "Inside volley response with: " +response.toString());
+                        List<NewsStories> newsStories =  new ArrayList<>();
+                        NetworkUtil.parseItems(newsStories,response);
+                        mLoadingProgressBar.setVisibility(View.GONE);
+                        Log.d(TAG, "News stories fetched size " + newsStories.size());
+                        if(newsStories.size() > 0){
+                            mNewsFeedRecyclerView.setVisibility(View.VISIBLE);
+                            mErrorMessageFL.setVisibility(View.GONE);
+                            Log.d(TAG, "loading First Page: " + isFirstPageLoading);
+                            if(!isFirstPageLoading){
+                                Log.d(TAG, "coming under next page");
+                                mAdapter.removeLoadingFooter();
+                                mAdapter.addMoreData(newsStories);
+                                isLoading = false;
+                                if( mCurrentPage != mTotalPages) mAdapter.addLoadingFooter();
+                                else isLastPage = true;
+                            }else{
+                                Log.d(TAG, "coming under load page");
+                                isFirstPageLoading = false;
+                                mTotalPages = newsStories.get(0).getHits() / 10 - 1;
+                                mAdapter.setNewsStories(newsStories);
+                            }
+                        }else{
+                            //mLoadingProgressBar.setVisibility(View.GONE);
+                            mNewsFeedRecyclerView.setVisibility(View.GONE);
+                            mErrorMessageFL.setVisibility(View.VISIBLE);
+                            mErrorMessageTextView.setText(R.string.no_results_found);
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        mAdapter.removeLoadingFooter();
+                        isLoading = false;
+                    }
+                });
+        mRequestQueue.add(jsonObjectRequest);
+
+
     }
 
     private void saveQuery(String query){
@@ -299,11 +380,21 @@ public class NewsFeedFragment extends VisibleFragment implements
                 else isLastPage = true;
             }else{
 
-                isFirstPageLoading = false;
-                mTotalPages = data.get(0).getHits() / 10 - 1;
-                mAdapter.setNewsStories(data);
-                if (mCurrentPage <= mTotalPages) mAdapter.addLoadingFooter();
-                else isLastPage = true;
+                if(data.size() > 0){
+                    mNewsFeedRecyclerView.setVisibility(View.VISIBLE);
+                    mErrorMessageFL.setVisibility(View.GONE);
+                    mErrorMessageTextView.setText(R.string.no_internet_message);
+                    isFirstPageLoading = false;
+                    mTotalPages = data.get(0).getHits() / 10 - 1;
+                    mAdapter.setNewsStories(data);
+                    if (mCurrentPage <= mTotalPages) mAdapter.addLoadingFooter();
+                    else isLastPage = true;
+                }else{
+                    mNewsFeedRecyclerView.setVisibility(View.GONE);
+                    mErrorMessageFL.setVisibility(View.VISIBLE);
+                    mErrorMessageTextView.setText(R.string.no_results_found);
+                }
+
             }
 
         }
@@ -313,6 +404,9 @@ public class NewsFeedFragment extends VisibleFragment implements
     public void onLoaderReset(Loader<List<NewsStories>> loader) {
 
     }
+
+
+
 
     @Override
     public void onDestroy() {
@@ -339,5 +433,39 @@ public class NewsFeedFragment extends VisibleFragment implements
     @Override
     protected BroadcastReceiver createConnectivityBroadcastReceiver() {
         return new ConnectivityBroadcastReceiver(mFrameLayout);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+
+        switch(itemId){
+            case R.id.action_refresh:
+                if(AppUtils.isNetworkAvailableAndConnected(getActivity())){
+                    loadFirstPage();
+                    mCurrentPage = 0;
+                    isLoading = false;
+                }
+                return true;
+            case R.id.action_clear:
+                if(AppUtils.isNetworkAvailableAndConnected(getActivity())) {
+                    saveQuery(null);
+                    loadFirstPage();
+                    mCurrentPage = 0;
+                    isLoading = false;
+                    getActivity().invalidateOptionsMenu();
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mRequestQueue.stop();
     }
 }

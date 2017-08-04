@@ -49,7 +49,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     }
 
     public void setNewsStories(List<NewsStories> newsStories) {
-        if(mNewsStories != null && mNewsStories.size() > 0)
+        if(mNewsStories != null && mNewsStories.size() >= 0)
             mNewsStories.clear();
         mNewsStories = newsStories;
         notifyDataSetChanged();
@@ -122,6 +122,7 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     }
 
     public void removeLoadingFooter(){
+        if(mNewsStories.size() <= 0) return;
         isLoadingAdded = false;
 
         int position = mNewsStories.size() - 1;

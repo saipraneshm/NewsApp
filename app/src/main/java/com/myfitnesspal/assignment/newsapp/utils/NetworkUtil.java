@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.text.format.DateFormat;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.myfitnesspal.assignment.newsapp.models.Doc;
 import com.myfitnesspal.assignment.newsapp.models.Multimedia;
@@ -50,6 +52,7 @@ public class NetworkUtil {
             .buildUpon()
             .appendQueryParameter(API_KEY_QUERY, API_KEY)
             .appendQueryParameter("fl",FL_PARAMETERS)
+            .appendQueryParameter("sort",SORT_BY_NEWEST)
             .build();
 
     private static final Uri TOP_STORIES_ENDPOINT = Uri.parse(TOP_STORIES_HOME_API)
@@ -87,42 +90,6 @@ public class NetworkUtil {
 
     }
 
-    public static String getResponseFromHttpUrl(String urlString) throws IOException {
-
-        URL url = new URL(urlString);
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-
-        try {
-
-            InputStream in = urlConnection.getInputStream();
-
-
-            Scanner scanner = new Scanner(in);
-
-            scanner.useDelimiter("\\A");
-
-
-            boolean hasInput = scanner.hasNext();
-
-            String response = null;
-
-            if (hasInput) {
-
-                response = scanner.next();
-
-            }
-
-            scanner.close();
-
-            return response;
-
-        } finally {
-
-            urlConnection.disconnect();
-
-        }
-
-    }
 
     public static String getUrlString(String urlSpec) throws IOException{
         return new String(getUrlBytes(urlSpec));
@@ -139,15 +106,17 @@ public class NetworkUtil {
         }
     }
 
-    private static String buildArticleStoriesUrl(String query, int page){
+    public static String buildArticleStoriesUrl(String query, int page){
         Uri.Builder builder = ARTICLE_SEARCH_ENDPOINT.buildUpon();
-        if(page >=0){
+        if(query!= null){
              return builder.appendQueryParameter("q", query)
                      .appendQueryParameter(PAGE_QUERY, String.valueOf(page))
                      .build().toString();
 
         }else{
-            return null;
+            return builder
+                    .appendQueryParameter(PAGE_QUERY, String.valueOf(page))
+                    .build().toString();
         }
     }
 
@@ -160,10 +129,10 @@ public class NetworkUtil {
     private static List<NewsStories> fetchArticleStories(String url) {
         List<NewsStories> newsStories = new ArrayList<>();
         try{
-            String jsonString = getResponseFromHttpUrl(url);
+            String jsonString = getUrlString(url);
             Log.d(TAG, "Received Json Object" +jsonString);
             JSONObject jsonObject = new JSONObject(jsonString);
-            parseItems(newsStories, jsonObject.getString("response"));
+            parseItems(newsStories, jsonObject);
         }catch (JSONException e) {
             Log.e(TAG, "Failed to parse json", e);
         }
@@ -173,9 +142,16 @@ public class NetworkUtil {
         return newsStories;
     }
 
-    private static void parseItems(List<NewsStories> newsStories, String jsonString) {
+    public static void parseItems(List<NewsStories> newsStories, JSONObject jsonResponse) {
+
         Gson gson = new Gson();
-        Response response = gson.fromJson(jsonString, Response.class);
+        Response response = null;
+        try {
+            response = gson.fromJson(jsonResponse.getString("response"), Response.class);
+        } catch (JSONException e) {
+            Log.d(TAG, "Volley request failure");
+            e.printStackTrace();
+        }
         List<Doc> listOfDocs = response.getDocs();
         for(Doc doc : listOfDocs){
             NewsStories newsStory = new NewsStories();
@@ -199,15 +175,25 @@ public class NetworkUtil {
             }
             newsStory.setWebUrl(doc.getWebUrl());
             if(doc.getPubDate() != null){
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ",
-                        Locale.getDefault());
-                Date pubDate;
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ", Locale.getDefault());
+                Date pubDate = null;
                 try{
                     pubDate = formatter.parse(doc.getPubDate());
-                    String date = DateFormat.format("EEE, MMM dd",pubDate).toString();
+                    String date = DateFormat.format("EEE, MMM dd yyyy",pubDate).toString();
                     newsStory.setPubDate(date);
                 } catch (ParseException e) {
                     e.printStackTrace();
+                    SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'",
+                            Locale.getDefault());
+                    try {
+                        pubDate = formatter2.parse(doc.getPubDate());
+                    } catch (ParseException e1) {
+                        e1.printStackTrace();
+                    }
+                    String date = DateFormat.format("EEE, MMM dd yyyy",pubDate).toString();
+                    newsStory.setPubDate(date);
+
+                    //newsStory.setPubDate("Not available");
                 }
             }else{
                 newsStory.setPubDate("Not available");
@@ -216,6 +202,7 @@ public class NetworkUtil {
             //newsStory.setPubDate(doc.getPubDate());
             newsStories.add(newsStory);
         }
+
     }
 
     private static String getThumbnailImageUrl(List<Multimedia> multimedias){
