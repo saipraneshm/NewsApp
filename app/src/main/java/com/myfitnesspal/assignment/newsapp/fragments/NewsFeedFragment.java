@@ -187,9 +187,10 @@ public class NewsFeedFragment extends VisibleFragment implements
         mRequestQueue.start();
 
         if(savedInstanceState != null){
-            mAdapter.setNewsStories(savedInstanceState
-                            .<NewsStories>getParcelableArrayList(SAVE_NEWS_STORIES));
+
             if(mFoundResults){
+                mAdapter.setNewsStories(savedInstanceState
+                        .<NewsStories>getParcelableArrayList(SAVE_NEWS_STORIES));
                 mNewsFeedRecyclerView
                         .scrollToPosition(savedInstanceState.getInt(SAVE_FIRST_VISIBLE_ITEM_POSITION));
                 mCurrentPage = savedInstanceState.getInt(SAVE_CURRENT_PAGE);
@@ -293,6 +294,7 @@ public class NewsFeedFragment extends VisibleFragment implements
                                 else isLastPage = true;
                             }else{
                                 isFirstPageLoading = false;
+                                mNewsFeedRecyclerView.scrollToPosition(0);
                                 mTotalPages = newsStories.get(0).getHits() / 10 - 1;
                                 mAdapter.setNewsStories(newsStories);
                                 if (mCurrentPage <= mTotalPages) mAdapter.addLoadingFooter();
@@ -457,16 +459,12 @@ public class NewsFeedFragment extends VisibleFragment implements
             case R.id.action_refresh:
                 if(AppUtils.isNetworkAvailableAndConnected(getActivity())){
                     loadFirstPage();
-                    //mCurrentPage = 0;
-                    //isLoading = false;
                 }
                 return true;
             case R.id.action_clear:
                 if(AppUtils.isNetworkAvailableAndConnected(getActivity())) {
                     saveQuery(null);
                     loadFirstPage();
-                    //mCurrentPage = 0;
-                    //isLoading = false;
                     getActivity().invalidateOptionsMenu();
                 }
                 return true;

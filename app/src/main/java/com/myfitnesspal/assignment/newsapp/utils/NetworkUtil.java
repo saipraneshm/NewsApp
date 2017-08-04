@@ -42,7 +42,8 @@ public class NetworkUtil {
     //API related configuration static variables
     private static final String ARTICLE_SEARCH_API = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     private static final String TOP_STORIES_HOME_API ="https://api.nytimes.com/svc/topstories/v2/home.json";
-    private static final String API_KEY = "d31fe793adf546658bd67e2b6a7fd11a";
+    //private static final String API_KEY = "d31fe793adf546658bd67e2b6a7fd11a";
+    private static final String API_KEY = "ba0867969a8e4e9687b9be1a6f01877c";
     private static final String PAGE_QUERY = "page";
     private static final String API_KEY_QUERY = "api-key";
     private static final String SORT_BY_NEWEST = "newest";
