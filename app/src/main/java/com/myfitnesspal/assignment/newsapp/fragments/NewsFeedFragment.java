@@ -278,17 +278,18 @@ public class NewsFeedFragment extends VisibleFragment implements
                             mErrorMessageFL.setVisibility(View.GONE);
                             Log.d(TAG, "loading First Page: " + isFirstPageLoading);
                             if(!isFirstPageLoading){
-                                Log.d(TAG, "coming under next page");
                                 mAdapter.removeLoadingFooter();
                                 mAdapter.addMoreData(newsStories);
                                 isLoading = false;
                                 if( mCurrentPage != mTotalPages) mAdapter.addLoadingFooter();
                                 else isLastPage = true;
                             }else{
-                                Log.d(TAG, "coming under load page");
+
                                 isFirstPageLoading = false;
                                 mTotalPages = newsStories.get(0).getHits() / 10 - 1;
                                 mAdapter.setNewsStories(newsStories);
+                                if (mCurrentPage <= mTotalPages) mAdapter.addLoadingFooter();
+                                else isLastPage = true;
                             }
                         }else{
                             //mLoadingProgressBar.setVisibility(View.GONE);
