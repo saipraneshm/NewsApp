@@ -69,6 +69,7 @@ public class NewsFeedFragment extends VisibleFragment implements
     private static final String PAGE_QUERY_EXTRA = "pageQueryExtra";
     private static final String SAVE_NEWS_STORIES = "saveNewsStories";
     private static final String SAVE_FIRST_VISIBLE_ITEM_POSITION = "saveFirstVisibleItemPosition";
+    private static final String SAVE_BOOLEAN_RESULTS_FOUND = "saveBooleanResultsFound";
 
     @BindView(R.id.news_feed_fragment_recycler_view)
     RecyclerView mNewsFeedRecyclerView;
@@ -107,6 +108,7 @@ public class NewsFeedFragment extends VisibleFragment implements
     private int mFirstVisibleItemPosition = 0;
 
     private RequestQueue mRequestQueue;
+    private boolean mFoundResults = true;
 
 
     public NewsFeedFragment() {
@@ -187,9 +189,14 @@ public class NewsFeedFragment extends VisibleFragment implements
         if(savedInstanceState != null){
             mAdapter.setNewsStories(savedInstanceState
                             .<NewsStories>getParcelableArrayList(SAVE_NEWS_STORIES));
-            mNewsFeedRecyclerView
-                    .scrollToPosition(savedInstanceState.getInt(SAVE_FIRST_VISIBLE_ITEM_POSITION));
-            mCurrentPage = savedInstanceState.getInt(SAVE_CURRENT_PAGE);
+            if(mFoundResults){
+                mNewsFeedRecyclerView
+                        .scrollToPosition(savedInstanceState.getInt(SAVE_FIRST_VISIBLE_ITEM_POSITION));
+                mCurrentPage = savedInstanceState.getInt(SAVE_CURRENT_PAGE);
+            }else{
+                showNoResultsFoundMessage();
+            }
+
         }else{
             if(AppUtils.isNetworkAvailableAndConnected(getActivity()))
                 loadFirstPage();
@@ -218,7 +225,7 @@ public class NewsFeedFragment extends VisibleFragment implements
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, " Submitted query: " + query);
                 AppUtils.hideKeyboard(getActivity(),searchView);
-                //searchView.clearFocus();
+                searchView.clearFocus();
                 saveQuery(query);
                 return true;
             }
@@ -235,14 +242,14 @@ public class NewsFeedFragment extends VisibleFragment implements
         mNewsFeedRecyclerView.setVisibility(View.GONE);
         mLoadingProgressBar.setVisibility(View.VISIBLE);
         Log.d(TAG, "current page: " + mCurrentPage + " " + isFirstPageLoading);
-        //makeActionSearchApiQuery(getQuery(),0);
-        //makeActionSearchApiQuery(0);
+       // makeActionSearchApiQuery(getQuery(),0);
+        makeActionSearchApiQuery(0);
 
 
     }
 
     private void loadNextPage(){
-       // makeActionSearchApiQuery(getQuery(), mCurrentPage);
+     //  makeActionSearchApiQuery(getQuery(), mCurrentPage);
         makeActionSearchApiQuery(mCurrentPage);
     }
 
@@ -274,6 +281,7 @@ public class NewsFeedFragment extends VisibleFragment implements
                         mLoadingProgressBar.setVisibility(View.GONE);
                         Log.d(TAG, "News stories fetched size " + newsStories.size());
                         if(newsStories.size() > 0){
+                            mFoundResults = true;
                             mNewsFeedRecyclerView.setVisibility(View.VISIBLE);
                             mErrorMessageFL.setVisibility(View.GONE);
                             Log.d(TAG, "loading First Page: " + isFirstPageLoading);
@@ -284,7 +292,6 @@ public class NewsFeedFragment extends VisibleFragment implements
                                 if( mCurrentPage != mTotalPages) mAdapter.addLoadingFooter();
                                 else isLastPage = true;
                             }else{
-
                                 isFirstPageLoading = false;
                                 mTotalPages = newsStories.get(0).getHits() / 10 - 1;
                                 mAdapter.setNewsStories(newsStories);
@@ -292,23 +299,28 @@ public class NewsFeedFragment extends VisibleFragment implements
                                 else isLastPage = true;
                             }
                         }else{
-                            //mLoadingProgressBar.setVisibility(View.GONE);
-                            mNewsFeedRecyclerView.setVisibility(View.GONE);
-                            mErrorMessageFL.setVisibility(View.VISIBLE);
-                            mErrorMessageTextView.setText(R.string.no_results_found);
+                            showNoResultsFoundMessage();
                         }
 
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        mAdapter.removeLoadingFooter();
-                        isLoading = false;
+                        mLoadingProgressBar.setVisibility(View.GONE);
+                        //mAdapter.removeLoadingFooter();
+                        //isLoading = false;
                     }
                 });
         mRequestQueue.add(jsonObjectRequest);
 
 
+    }
+
+    private void showNoResultsFoundMessage(){
+        mFoundResults = false;
+        mNewsFeedRecyclerView.setVisibility(View.GONE);
+        mErrorMessageFL.setVisibility(View.VISIBLE);
+        mErrorMessageTextView.setText(R.string.no_results_found);
     }
 
     private void saveQuery(String query){
@@ -427,6 +439,7 @@ public class NewsFeedFragment extends VisibleFragment implements
         outState.putInt(SAVE_CURRENT_PAGE,mCurrentPage);
         outState.putParcelableArrayList(SAVE_NEWS_STORIES, stories);
         outState.putInt(SAVE_FIRST_VISIBLE_ITEM_POSITION , mFirstVisibleItemPosition);
+        outState.putBoolean(SAVE_BOOLEAN_RESULTS_FOUND, mFoundResults);
     }
 
 
@@ -444,16 +457,16 @@ public class NewsFeedFragment extends VisibleFragment implements
             case R.id.action_refresh:
                 if(AppUtils.isNetworkAvailableAndConnected(getActivity())){
                     loadFirstPage();
-                    mCurrentPage = 0;
-                    isLoading = false;
+                    //mCurrentPage = 0;
+                    //isLoading = false;
                 }
                 return true;
             case R.id.action_clear:
                 if(AppUtils.isNetworkAvailableAndConnected(getActivity())) {
                     saveQuery(null);
                     loadFirstPage();
-                    mCurrentPage = 0;
-                    isLoading = false;
+                    //mCurrentPage = 0;
+                    //isLoading = false;
                     getActivity().invalidateOptionsMenu();
                 }
                 return true;
