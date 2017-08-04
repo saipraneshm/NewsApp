@@ -12,10 +12,10 @@
     <item android:id="@+id/action_refresh"
           android:title="@string/refresh"
           android:icon="@drawable/ic_refresh_white_24dp"
-          app:showAsAction="ifRoom"
+          app:showAsAction="ifRoom|withText"
         />
 
     <item android:id="@+id/action_clear"
-          android:title="@string/clear"
+          android:title="@string/reset"
           app:showAsAction="withText|never"/>
 </menu>

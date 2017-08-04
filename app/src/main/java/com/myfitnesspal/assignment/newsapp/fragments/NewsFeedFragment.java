@@ -89,6 +89,8 @@ public class NewsFeedFragment extends VisibleFragment implements
     @BindView(R.id.swipeRefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
 
+    SearchView searchView;
+
     private static final int NEWS_STORY_SEARCH_LOADER = 25;
     private static final String TAG = NewsFeedFragment.class.getSimpleName();
 
@@ -186,6 +188,20 @@ public class NewsFeedFragment extends VisibleFragment implements
         mRequestQueue =  new RequestQueue(cache, network);
         mRequestQueue.start();
 
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if(AppUtils.isNetworkAvailableAndConnected(getActivity())){
+                    isFirstPageLoading = true;
+                    makeActionSearchApiQuery(0);
+                }
+            }
+        });
+
+        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
         if(savedInstanceState != null){
 
             if(mFoundResults){
@@ -219,12 +235,12 @@ public class NewsFeedFragment extends VisibleFragment implements
         inflater.inflate(R.menu.activity_main_menu, menu);
 
         MenuItem searchItem = menu.findItem(R.id.app_bar_search);
-        final SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView = (SearchView) searchItem.getActionView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Log.d(TAG, " Submitted query: " + query);
+               //Log.d(TAG, " Submitted query: " + query);
                 AppUtils.hideKeyboard(getActivity(),searchView);
                 searchView.clearFocus();
                 saveQuery(query);
@@ -236,17 +252,16 @@ public class NewsFeedFragment extends VisibleFragment implements
                 return false;
             }
         });
+
+        searchView.setQueryHint(getString(R.string.search_for_news_articles));
     }
 
     private void loadFirstPage(){
         isFirstPageLoading = true;
         mNewsFeedRecyclerView.setVisibility(View.GONE);
         mLoadingProgressBar.setVisibility(View.VISIBLE);
-        Log.d(TAG, "current page: " + mCurrentPage + " " + isFirstPageLoading);
        // makeActionSearchApiQuery(getQuery(),0);
         makeActionSearchApiQuery(0);
-
-
     }
 
     private void loadNextPage(){
@@ -280,6 +295,7 @@ public class NewsFeedFragment extends VisibleFragment implements
                         List<NewsStories> newsStories =  new ArrayList<>();
                         NetworkUtil.parseItems(newsStories,response);
                         mLoadingProgressBar.setVisibility(View.GONE);
+                        mSwipeRefreshLayout.setRefreshing(false);
                         Log.d(TAG, "News stories fetched size " + newsStories.size());
                         if(newsStories.size() > 0){
                             mFoundResults = true;
@@ -309,6 +325,7 @@ public class NewsFeedFragment extends VisibleFragment implements
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         mLoadingProgressBar.setVisibility(View.GONE);
+                        mSwipeRefreshLayout.setRefreshing(false);
                         //mAdapter.removeLoadingFooter();
                         //isLoading = false;
                     }
