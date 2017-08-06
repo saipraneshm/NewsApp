@@ -4,6 +4,7 @@ package com.myfitnesspal.assignment.newsapp.fragments;
 import android.content.BroadcastReceiver;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -67,6 +68,10 @@ public class NewsFeedFragment extends VisibleFragment implements
     private static final String SAVE_QUERY_TAG = "save_query_tag";
     private static final String SAVE_CURRENT_PAGE = "saveQueryForRotation";
     private static final String SAVE_TYPED_QUERY = "saveTypedQuery";
+    private static final String SAVE_PARCELABLE_NEWSTORY = "saveParcelableNewsStory";
+
+    private Parcelable newsStories;
+    private LinearLayoutManager linearLayoutManager;
 
 
     //Binding views using ButterKnife
@@ -155,10 +160,11 @@ public class NewsFeedFragment extends VisibleFragment implements
         ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
 
         //Instantiating News feed fragment recycler view
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager = new LinearLayoutManager(getActivity());
         mNewsFeedRecyclerView.setLayoutManager(linearLayoutManager);
         mAdapter = new NewsFeedRecyclerViewAdapter(getActivity());
         mNewsFeedRecyclerView.setAdapter(mAdapter);
+
         mNewsFeedRecyclerView.addOnScrollListener(new PaginationScrollListener(linearLayoutManager) {
             @Override
             protected void loadMoreItems() {
@@ -220,10 +226,9 @@ public class NewsFeedFragment extends VisibleFragment implements
 
             mSaveTypedText = savedInstanceState.getString(SAVE_TYPED_QUERY);
             if(mFoundResults){
+                newsStories = savedInstanceState.getParcelable(SAVE_PARCELABLE_NEWSTORY);
                 mAdapter.setNewsStories(savedInstanceState
                         .<NewsStory>getParcelableArrayList(SAVE_NEWS_STORIES));
-                mNewsFeedRecyclerView
-                        .scrollToPosition(savedInstanceState.getInt(SAVE_FIRST_VISIBLE_ITEM_POSITION));
                 mCurrentPage = savedInstanceState.getInt(SAVE_CURRENT_PAGE);
             }else{
                 showNoResultsFoundMessage();
@@ -243,6 +248,13 @@ public class NewsFeedFragment extends VisibleFragment implements
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(newsStories != null) {
+            linearLayoutManager.onRestoreInstanceState(newsStories);
+        }
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -275,8 +287,10 @@ public class NewsFeedFragment extends VisibleFragment implements
             public void onClick(View view) {
                 String query = getQuery();
                 if(query != null && !TextUtils.isEmpty(query)) {
+                    searchItem.expandActionView();
                     searchView.setQuery(query, false);
                 }else if(mSaveTypedText != null && !TextUtils.isEmpty(mSaveTypedText)){
+                    searchItem.expandActionView();
                     searchView.setQuery(mSaveTypedText,false);
                 }
 
@@ -315,6 +329,7 @@ public class NewsFeedFragment extends VisibleFragment implements
     //Performs HTTP request and fetches the data asynchronously
     private void makeActionSearchApiQuery(int page){
         String url = NetworkUtils.buildArticleStoriesUrl(getQuery(), page);
+        Log.d(TAG,"making request for url: " + url);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                     @Override
@@ -416,14 +431,18 @@ public class NewsFeedFragment extends VisibleFragment implements
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+        newsStories = linearLayoutManager.onSaveInstanceState();
         ArrayList<NewsStory> stories = (ArrayList<NewsStory>) mAdapter.getNewsStories();
         outState.putInt(SAVE_CURRENT_PAGE,mCurrentPage);
         outState.putParcelableArrayList(SAVE_NEWS_STORIES, stories);
         outState.putInt(SAVE_FIRST_VISIBLE_ITEM_POSITION , mFirstVisibleItemPosition);
         outState.putBoolean(SAVE_BOOLEAN_RESULTS_FOUND, mFoundResults);
         outState.putString(SAVE_TYPED_QUERY, mSaveTypedText);
+        outState.putParcelable(SAVE_PARCELABLE_NEWSTORY, newsStories);
+        super.onSaveInstanceState(outState);
     }
+
+
 
 
 

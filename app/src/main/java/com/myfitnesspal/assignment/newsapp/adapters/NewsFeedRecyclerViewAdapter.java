@@ -182,9 +182,12 @@ public class NewsFeedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
         @Override
         public void onClick(View view) {
-            Uri uri = Uri.parse(mNewsStory.getWebUrl());
-            Intent i = NewsFeedDetailActivity.newIntent(mContext,uri);
-            mContext.startActivity(i);
+            if(mNewsStory != null && mNewsStory.getWebUrl() != null){
+                Uri uri = Uri.parse(mNewsStory.getWebUrl());
+                Intent i = NewsFeedDetailActivity.newIntent(mContext,uri);
+                mContext.startActivity(i);
+            }
+
         }
     }
 

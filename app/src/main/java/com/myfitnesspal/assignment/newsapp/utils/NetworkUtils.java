@@ -35,7 +35,7 @@ public class NetworkUtils {
     //private static final String API_KEY = "d31fe793adf546658bd67e2b6a7fd11a";
 
     //Personal API key
-    private static final String API_KEY = "ba0867969a8e4e9687b9be1a6f01877c";
+    private static final String API_KEY = "2aee84f7ad064b8b8d30590b1b72d895";
 
     private static final String PAGE_QUERY = "page";
     private static final String API_KEY_QUERY = "api-key";

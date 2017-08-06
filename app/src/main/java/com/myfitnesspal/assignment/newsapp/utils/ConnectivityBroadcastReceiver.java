@@ -3,7 +3,6 @@ package com.myfitnesspal.assignment.newsapp.utils;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -32,7 +31,8 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
         if(!isConnected){
             TextView textView = (TextView) mRootView.findViewById(R.id.error_message_text_view);
             textView.setText(R.string.no_internet_message);
-            final Snackbar snackbar = Snackbar.make(mRootView, R.string.no_internet_connection,
+            final Snackbar snackbar = Snackbar.make(mRootView,
+                    R.string.no_internet_connection,
                     Snackbar.LENGTH_INDEFINITE);
             snackbar.setActionTextColor(context.getResources().getColor(R.color.colorPrimary))
                     .setAction(R.string.dismiss, new View.OnClickListener() {
@@ -43,7 +43,8 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
                     }).show();
 
             if(!isNewsFeedDetailFragment()){
-                mRootView.findViewById(R.id.news_feed_fragment_recycler_view).setVisibility(View.GONE);
+                mRootView.findViewById(R.id.news_feed_fragment_recycler_view)
+                        .setVisibility(View.GONE);
             }else{
                 mRootView.findViewById(R.id.web_view_progress_bar).setVisibility(View.GONE);
                 mRootView.findViewById(R.id.web_view).setVisibility(View.GONE);
@@ -61,7 +62,8 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
                     snackbar.setAction(R.string.continue_message, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    mRootView.findViewById(R.id.web_view).setVisibility(View.VISIBLE);
+                                    mRootView.findViewById(R.id.web_view)
+                                            .setVisibility(View.VISIBLE);
                                     snackbar.dismiss();
 
                                 }
@@ -71,11 +73,15 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
                     snackbar.setAction(R.string.continue_message, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    mRootView.findViewById(R.id.news_feed_fragment_recycler_view).setVisibility(View.VISIBLE);
+                                    mRootView.findViewById(R.id.news_feed_fragment_recycler_view)
+                                            .setVisibility(View.VISIBLE);
                                     snackbar.dismiss();
-                                    RecyclerView recyclerView = (RecyclerView) mRootView.findViewById(R.id.news_feed_fragment_recycler_view);
+                                    RecyclerView recyclerView = (RecyclerView) mRootView
+                                            .findViewById(R.id.news_feed_fragment_recycler_view);
                                     if(recyclerView.getAdapter().getItemCount() <= 0){
-                                        Snackbar.make(mRootView, R.string.click_on_refresh, Snackbar.LENGTH_SHORT)
+                                        Snackbar
+                                                .make(mRootView, R.string.click_on_refresh
+                                                        , Snackbar.LENGTH_SHORT)
                                                 .setActionTextColor(context.getResources()
                                                         .getColor(R.color.colorPrimary))
                                                 .show();
