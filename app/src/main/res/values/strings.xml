@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">NewsApp</string>
+    <string name="search">Search</string>
+    <string name="section_header">Subsection</string>
+    <string name="headline_text">Google job that wasn\'t: Phone call devastated my son\'s life, says mother of Chandigarh teen. helloooooooooooooooooooooooo misssssssssssssssssssssteeeeeeeeeeeeeeeeeer</string>
+    <string name="pub_time">Updated 3h ago</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="action_share">Share News</string>
+    <string name="no_internet_connection">No internet connection. Please try again</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="continue_message">continue</string>
+    <string name="internet_connection_available">Connected to internet.</string>
+    <string name="no_internet_message">No internet connectivity. Please try again after sometime</string>
+    <string name="refresh">Refresh</string>
+    <string name="clear">Clear</string>
+    <string name="click_on_refresh">Click on refresh to load results</string>
+    <string name="no_results_found">No results found. Please try searching with other results</string>
+    <string name="search_for_news_articles">Search NYTimes</string>
+    <string name="reset">Reset</string>
+    <string name="no_more_search_results">No more search results available</string>
 </resources>
