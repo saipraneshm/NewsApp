@@ -81,17 +81,13 @@ public class NetworkUtils {
             List<Doc> listOfDocs = response.getDocs();
             for(Doc doc : listOfDocs){
                 NewsStory newsStory = new NewsStory();
-                if(doc.getMultimedia().size() > 0){
+                if(doc.getMultimedia().size() > 0) {
                     String thumbnailUrl = getThumbnailImageUrl(doc.getMultimedia());
-                    if(thumbnailUrl != null){
-                        newsStory.setThumbnailAvailable(true);
+                    if (thumbnailUrl != null) {
                         newsStory.setThumbnailUrl(thumbnailUrl);
-                    }else{
-                        newsStory.setThumbnailAvailable(false);
                     }
-                }else{
-                    newsStory.setThumbnailAvailable(false);
                 }
+
                 if(doc.getByline() != null)
                     newsStory.setByline(doc.getByline().getOriginal());
                 if(doc.getHeadline() != null)
@@ -101,7 +97,8 @@ public class NetworkUtils {
                 }
                 newsStory.setWebUrl(doc.getWebUrl());
                 if(doc.getPubDate() != null){
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ", Locale.getDefault());
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ",
+                            Locale.getDefault());
                     Date pubDate = null;
                     try{
                         pubDate = formatter.parse(doc.getPubDate());

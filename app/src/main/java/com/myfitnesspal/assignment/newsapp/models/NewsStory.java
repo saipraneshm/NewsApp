@@ -11,7 +11,6 @@ public class NewsStory implements Parcelable {
     private String mThumbnailUrl;
     private String mByline;
     private String mId;
-    private boolean mIsThumbnailAvailable;
     private int mHits;
 
     public String getHeadline() {
@@ -62,13 +61,6 @@ public class NewsStory implements Parcelable {
         mId = id;
     }
 
-    public boolean isThumbnailAvailable() {
-        return mIsThumbnailAvailable;
-    }
-
-    public void setThumbnailAvailable(boolean thumbnailAvailable) {
-        mIsThumbnailAvailable = thumbnailAvailable;
-    }
 
     public int getHits() {
         return mHits;
@@ -104,7 +96,6 @@ public class NewsStory implements Parcelable {
         dest.writeString(this.mThumbnailUrl);
         dest.writeString(this.mByline);
         dest.writeString(this.mId);
-        dest.writeByte(this.mIsThumbnailAvailable ? (byte) 1 : (byte) 0);
         dest.writeInt(this.mHits);
     }
 
@@ -118,7 +109,6 @@ public class NewsStory implements Parcelable {
         this.mThumbnailUrl = in.readString();
         this.mByline = in.readString();
         this.mId = in.readString();
-        this.mIsThumbnailAvailable = in.readByte() != 0;
         this.mHits = in.readInt();
     }
 

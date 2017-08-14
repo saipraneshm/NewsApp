@@ -1,8 +1,10 @@
 package com.myfitnesspal.assignment.newsapp.fragments;
 
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
@@ -44,6 +47,7 @@ public class NewsFeedDetailFragment extends VisibleFragment {
 
     private static final String ARG_URI = "photo_page_url";
     private Uri mUri;
+    private String url;
 
     @BindView(R.id.web_view)
     WebView mWebView;
@@ -82,6 +86,7 @@ public class NewsFeedDetailFragment extends VisibleFragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mUri = getArguments().getParcelable(ARG_URI);
+        url = mUri != null ? mUri.toString() : null;
     }
 
     @Override
@@ -91,6 +96,7 @@ public class NewsFeedDetailFragment extends VisibleFragment {
 
         ButterKnife.bind(this, view);
         mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.setWebViewClient(new ManagePostWebviewInterface());
         mWebView.setWebChromeClient(new WebChromeClient(){
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -110,9 +116,13 @@ public class NewsFeedDetailFragment extends VisibleFragment {
                         && activity.getSupportActionBar() != null)
                     activity.getSupportActionBar().setSubtitle(title);
             }
+
         });
 
-        mWebView.setWebViewClient(new WebViewClient());
+
+
+
+
         if(AppUtils.isNetworkAvailableAndConnected(getActivity())){
             boolean isHttp = URLUtil.isHttpUrl(mUri.toString());
             boolean isHttps = URLUtil.isHttpsUrl(mUri.toString());
@@ -143,8 +153,8 @@ public class NewsFeedDetailFragment extends VisibleFragment {
         int id = item.getItemId();
 
         if(id == R.id.action_share){
-            Intent shareIntent = createShareNewsIntent();
-            startActivity(shareIntent);
+          //  Intent shareIntent = createShareNewsIntent();
+            startActivity(createShareNewsIntent());
             return true;
         }else if(id == android.R.id.home){
             getActivity().finish();
@@ -167,5 +177,28 @@ public class NewsFeedDetailFragment extends VisibleFragment {
     @Override
     protected BroadcastReceiver createConnectivityBroadcastReceiver() {
         return new ConnectivityBroadcastReceiver(mConstraintLayout);
+    }
+
+    public class ManagePostWebviewInterface extends WebViewClient {
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            view.loadUrl(url);
+            return true;
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+            mProgressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String link) {
+            mProgressBar.setVisibility(View.GONE);
+            url = link; // save final url so user can open in default browser
+            super.onPageFinished(view, url);
+        }
     }
 }
